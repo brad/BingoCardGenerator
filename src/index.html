@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bingo Card Generator</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <h1>Bingo Card Generator</h1>
+    <form id="generator-form">
+        <fieldset>
+            <legend>Bingo Card Basics</legend>
+            <label>Card Title <input type="text" name="title" id="title" value="Day in the Park Bingo"></label>
+            <label>Word List (separated by commas)
+                <textarea cols="60" rows="8" name="words" id="id-words">Flowers,Bees,Picnickers,Ants,Little Kid Crying,Holding Hands,Person Napping,A Balloon,Dogs,Frisbee,Stroller,Chess Players,Rollerskates,Musician,Juggler,Photographer,Painter,Plastic Bag in Tree,Squirrel,Pigeon,Bicycle Built for Two,Ice Cream,Sunbather,Person Reading Newspaper,Person Listening to Radio,Sidewalk Chalk,Hopscotch</textarea>
+            </label>
+        </fieldset>
+
+        <fieldset>
+            <legend>Free Space</legend>
+            <label>Include a free space?
+                <select name="freespace" id="freespace">
+                    <option value="true" selected>Yes</option>
+                    <option value="false">No</option>
+                </select>
+            </label>
+            <label>Free Space Text <input type="text" name="freespaceValue" id="freespaceValue" value="Park Bench"></label>
+            <label>Free Space Description <input type="text" name="freespaceSubheadingValue" id="freespaceSubheadingValue" value="Free Space"></label>
+            <label>Free Space Placement
+                <select name="freespaceRandom" id="freespaceRandom">
+                    <option value="true">Random</option>
+                    <option value="false" selected>Center</option>
+                </select>
+            </label>
+        </fieldset>
+
+        <fieldset>
+            <legend>Card Size</legend>
+            <label>Number of Squares Wide <input type="number" name="width" id="width" value="5"></label>
+            <label>Number of Squares Tall <input type="number" name="height" id="height" value="5"></label>
+        </fieldset>
+
+        <div class="button-group">
+            <button type="button" id="generate-local">Open standalone card</button>
+            <button type="button" id="generate-link">Copy shareable link</button>
+        </div>
+    </form>
+
+    <div id="link-display" style="display:none; margin-top: 10px; padding: 10px; background: #eef; border-radius: 4px; word-break: break-all;">
+        <strong>Shareable Link:</strong><br>
+        <span id="link-text"></span>
+    </div>
+
+    <script type="module">
+        import { bingoCore } from './js/bingo-core.js';
+        import { storage } from './js/storage.js';
+
+        const form = document.getElementById('generator-form');
+
+        function getConfig() {
+            const formData = new FormData(form);
+            return {
+                title: formData.get('title'),
+                words: document.getElementById('id-words').value,
+                width: parseInt(formData.get('width')),
+                height: parseInt(formData.get('height')),
+                freespace: formData.get('freespace') === 'true',
+                freespaceValue: formData.get('freespaceValue'),
+                freespaceSubheadingValue: formData.get('freespaceSubheadingValue'),
+                freespaceRandom: formData.get('freespaceRandom') === 'true'
+            };
+        }
+
+        document.getElementById('generate-local').addEventListener('click', () => {
+            const config = getConfig();
+            // We clear current storage to force a new card generation based on these settings
+            storage.clearCard();
+            const queryString = bingoCore.encodeConfig(config);
+            window.location.href = 'card.html?' + queryString;
+        });
+
+        document.getElementById('generate-link').addEventListener('click', () => {
+            const config = getConfig();
+            const queryString = bingoCore.encodeConfig(config);
+            let path = window.location.pathname; if (path.endsWith('index.html')) { path = path.replace('index.html', 'card.html'); } else if (path.endsWith('/')) { path += 'card.html'; } else { path += '/card.html'; } const url = window.location.origin + path + '?' + queryString;
+
+            const linkDisplay = document.getElementById('link-display');
+            const linkText = document.getElementById('link-text');
+            linkText.textContent = url;
+            linkDisplay.style.display = 'block';
+
+            navigator.clipboard.writeText(url).then(() => {
+                alert('Link copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+            });
+        });
+    </script>
+</body>
+</html>

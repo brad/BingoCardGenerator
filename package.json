@@ -1,13 +1,12 @@
 {
   "name": "BingoCardGenerator",
-  "description": "Simple Travis-CI check for JSHint (Code Linting)",
-  "author": "Chris Herdt",
-  "version": "0.0.2",
-  "devDependencies": {
-    "jshint": "^2.6.0",
-    "qunit": "^2.6.1"
-  },
+  "description": "Modernized Bingo Card Generator",
+  "version": "1.0.0",
   "scripts": {
-    "test": "sh ./scripts/run-tests.sh"
+    "start": "npx serve src",
+    "deploy": "echo 'Deployments are handled by GitHub Actions on push to main branch.'"
+  },
+  "devDependencies": {
+    "serve": "^14.2.1"
   }
 }

@@ -1,23 +1,24 @@
-BingoCardGenerator
+Bingo Card Generator
 ==================
 
-[![Build Status](https://travis-ci.org/cherdt/BingoCardGenerator.svg?branch=master)](https://travis-ci.org/cherdt/BingoCardGenerator)
+A modernized bingo card generator.
 
-A bingo card generator. This is the source for https://osric.com/bingo-card-generator/
+Live Demo: https://brad.github.io/BingoCardGenerator/
 
+Features
+--------
 
-Tests
------
+- **Mobile-First Design**: Standalone card page that fills the screen.
+- **PWA Support**: Installable on your home screen with offline support.
+- **Shareable Links**: Generate a link to share your specific card configuration with others.
+- **Persistent State**: Your card progress is saved automatically in your browser.
 
-I have recently added automated tests using [TravisCI](https://travis-ci.org/). Tests include:
+Development
+-----------
 
-* [JSHint](http://jshint.com)
-* [QUnit](https://qunitjs.com/)
+To run the generator locally, use the start script defined in package.json.
 
+Deployment
+----------
 
-History
--------
-
-I created this circa 2011. I was trying to create Midtown Village Window Bingo and I didn't like any of the tools I found online. It took a few hours to build the first version.
-
-It has been and continues to be a pleasant surprise to find that other people are using it for a variety of fun purposes (family reunions, birthday parties, classroom activities, etc.)! I have added additional features over the years as people request them.
+This project is automatically deployed to GitHub Pages via GitHub Actions whenever changes are pushed to the main branch.
