@@ -1,0 +1,167 @@
+:root {
+    --primary-color: #4a90e2;
+    --secondary-color: #f5f5f5;
+    --text-color: #333;
+    --border-color: #ddd;
+    --marked-color: #e2f0ff;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    color: var(--text-color);
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #fff;
+}
+
+h1 {
+    text-align: center;
+    color: var(--primary-color);
+}
+
+form {
+    background: var(--secondary-color);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+fieldset {
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    margin-bottom: 20px;
+    padding: 15px;
+}
+
+legend {
+    font-weight: bold;
+    padding: 0 10px;
+}
+
+label {
+    display: block;
+    margin-bottom: 10px;
+}
+
+input[type="text"],
+textarea,
+select {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.button-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+button, input[type="submit"] {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    flex: 1;
+}
+
+button:hover, input[type="submit"]:hover {
+    background-color: #357abd;
+}
+
+#results {
+    margin-top: 30px;
+}
+
+/* Standalone Card Styles */
+.standalone-body {
+    margin: 0;
+    padding: 0;
+    max-width: none;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.bingo-header {
+    padding: 10px;
+    text-align: center;
+    background: var(--primary-color);
+    color: white;
+    margin: 0;
+}
+
+.bingo-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    overflow: hidden;
+}
+
+.bingo-grid {
+    display: grid;
+    gap: 5px;
+    width: 100%;
+    height: 100%;
+    max-width: 600px;
+    max-height: 600px;
+}
+
+.bingo-cell {
+    border: 2px solid var(--primary-color);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 5px;
+    cursor: pointer;
+    background: white;
+    user-select: none;
+    font-size: 0.8rem;
+    overflow: hidden;
+    word-break: break-word;
+}
+
+.bingo-cell.marked {
+    background-color: var(--marked-color);
+    position: relative;
+}
+
+.bingo-cell.marked::after {
+    content: '';
+    position: absolute;
+    width: 80%;
+    height: 80%;
+    background-image: url('../assets/images/daub1.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0.6;
+}
+
+.freespace-label {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    font-weight: bold;
+    color: #666;
+}
+
+@media (min-width: 600px) {
+    .bingo-cell {
+        font-size: 1rem;
+    }
+    .freespace-label {
+        font-size: 0.7rem;
+    }
+}
