@@ -1,13 +1,9 @@
 export const bingoCore = {
     generateCardData(config) {
-        const { title, words, width, height, freespace, freespaceValue, freespaceSubheadingValue, freespaceRandom } = config;
+        const { title, words, width, height, centerType, centerValue, centerSubheadingValue, fontSize } = config;
 
         let possibleSpaces = words.split(',').map(s => s.trim()).filter(s => s !== "");
         const totalSquares = width * height;
-
-        if (possibleSpaces.length < (freespace ? totalSquares - 1 : totalSquares)) {
-             console.warn("Not enough words for the card size!");
-        }
 
         // Shuffle possible spaces
         const shuffled = [...possibleSpaces];
@@ -20,12 +16,12 @@ export const bingoCore = {
         const centerSquareIndex = Math.floor(height / 2) * width + Math.floor(width / 2);
 
         for (let i = 0; i < totalSquares; i++) {
-            if (freespace && !freespaceRandom && i === centerSquareIndex) {
+            if (centerType !== 'random' && i === centerSquareIndex) {
                 spaces.push({
-                    text: freespaceValue,
-                    subheading: freespaceSubheadingValue,
-                    isFreeSpace: true,
-                    marked: true
+                    text: centerValue,
+                    subheading: centerSubheadingValue,
+                    isFreeSpace: centerType === 'free',
+                    marked: centerType === 'free'
                 });
             } else {
                 const text = shuffled.pop() || "";
@@ -38,39 +34,27 @@ export const bingoCore = {
             }
         }
 
-        if (freespace && freespaceRandom) {
-            const randomIndex = Math.floor(Math.random() * totalSquares);
-            spaces[randomIndex] = {
-                text: freespaceValue,
-                subheading: freespaceSubheadingValue,
-                isFreeSpace: true,
-                marked: true
-            };
-        }
-
         return {
             title,
             width,
             height,
+            fontSize,
             spaces
         };
     },
 
     encodeConfig(config) {
-        // To keep it shorter and cleaner, we'll JSON stringify and then use Base64
-        // We use a compact key mapping to save space
         const compact = {
             t: config.title,
             w: config.words,
             wi: config.width,
             h: config.height,
-            f: config.freespace ? 1 : 0,
-            fv: config.freespaceValue,
-            fs: config.freespaceSubheadingValue,
-            fr: config.freespaceRandom ? 1 : 0
+            ct: config.centerType,
+            cv: config.centerValue,
+            cs: config.centerSubheadingValue,
+            fs: config.fontSize
         };
         const str = JSON.stringify(compact);
-        // Using btoa(unescape(encodeURIComponent(str))) for unicode support
         return 'c=' + btoa(unescape(encodeURIComponent(str)));
     },
 
@@ -86,26 +70,27 @@ export const bingoCore = {
                     words: compact.w,
                     width: parseInt(compact.wi),
                     height: parseInt(compact.h),
-                    freespace: compact.f === 1,
-                    freespaceValue: compact.fv,
-                    freespaceSubheadingValue: compact.fs,
-                    freespaceRandom: compact.fr === 1
+                    centerType: compact.ct,
+                    centerValue: compact.cv,
+                    centerSubheadingValue: compact.cs,
+                    fontSize: compact.fs
                 };
             } catch (e) {
                 console.error("Failed to decode config", e);
             }
         }
 
-        // Fallback to old format or empty
+        // Fallback or legacy
+        const freespace = params.get('freespace') === 'true';
         return {
             title: params.get('title') || 'Bingo',
             words: params.get('words') || '',
             width: parseInt(params.get('width') || 5),
             height: parseInt(params.get('height') || 5),
-            freespace: params.get('freespace') === 'true',
-            freespaceValue: params.get('freespaceValue') || 'Free',
-            freespaceSubheadingValue: params.get('freespaceSubheadingValue') || 'Free Space',
-            freespaceRandom: params.get('freespaceRandom') === 'true'
+            centerType: freespace ? 'free' : 'random',
+            centerValue: params.get('freespaceValue') || 'Free',
+            centerSubheadingValue: params.get('freespaceSubheadingValue') || 'Free Space',
+            fontSize: 'medium'
         };
     }
 };
