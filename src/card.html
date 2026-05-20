@@ -23,33 +23,23 @@
         const titleElement = document.getElementById('card-title');
 
         function init() {
-            // Priority 1: New config in URL
             const search = window.location.search;
-            console.log("Card Page Search:", search);
-
             let cardData = null;
 
             if (search && search.includes('c=')) {
-                console.log("Found 'c' in search");
                 const config = bingoCore.decodeConfig(search);
-                console.log("Decoded config:", JSON.stringify(config));
                 if (config && config.words) {
                     cardData = bingoCore.generateCardData(config);
                     storage.saveCard(cardData);
-                    // Clear search to avoid re-generating on refresh
                     window.history.replaceState({}, document.title, window.location.pathname);
                 }
             }
 
-            // Priority 2: Load from localStorage
             if (!cardData) {
                 cardData = storage.loadCard();
-                console.log("Loaded from storage:", cardData ? "SUCCESS" : "FAIL");
             }
 
-            // Priority 3: Default card if nothing exists
             if (!cardData) {
-                console.log("Using default config");
                 const defaultConfig = {
                     title: "Bingo",
                     words: "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25",

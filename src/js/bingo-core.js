@@ -89,7 +89,6 @@ export const bingoCore = {
             }
         }
 
-        // Hard fallback to default
         return {
             title: 'Bingo',
             words: '',
