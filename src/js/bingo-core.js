@@ -1,5 +1,5 @@
 export const bingoCore = {
-    generateCardData(config) {
+    generateCardData(config, roomId = 'default') {
         const {
             title = "Bingo",
             words = "",
@@ -33,7 +33,7 @@ export const bingoCore = {
                     isFreeSpace: centerType === 'f',
                     marked: centerType === 'f',
                     note: "",
-                    wasEverDaubed: centerType === 'free',
+                    wasEverDaubed: centerType === 'f',
                 });
             } else {
                 const text = shuffled.pop() || "";
