@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bingo Card Generator</title>
+    <link rel="icon" type="image/svg+xml" href="assets/images/icon.svg">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -15,30 +16,39 @@
             <label>Word List (separated by commas)
                 <textarea cols="60" rows="8" name="words" id="id-words">Flowers,Bees,Picnickers,Ants,Little Kid Crying,Holding Hands,Person Napping,A Balloon,Dogs,Frisbee,Stroller,Chess Players,Rollerskates,Musician,Juggler,Photographer,Painter,Plastic Bag in Tree,Squirrel,Pigeon,Bicycle Built for Two,Ice Cream,Sunbather,Person Reading Newspaper,Person Listening to Radio,Sidewalk Chalk,Hopscotch</textarea>
             </label>
+            <label>Font Size
+                <select name="fontSize" id="fontSize">
+                    <option value="s">Small</option>
+                    <option value="m" selected>Medium</option>
+                    <option value="l">Large</option>
+                </select>
+            </label>
         </fieldset>
 
         <fieldset>
-            <legend>Free Space</legend>
-            <label>Include a free space?
-                <select name="freespace" id="freespace">
-                    <option value="true" selected>Yes</option>
-                    <option value="false">No</option>
+            <legend>Center Space</legend>
+            <label>Center Space Type
+                <select name="centerType" id="centerType">
+                    <option value="f" selected>Free Space (Pre-marked)</option>
+                    <option value="m">Manual (Fixed text, not marked)</option>
+                    <option value="r">Randomized (From word list)</option>
                 </select>
             </label>
-            <label>Free Space Text <input type="text" name="freespaceValue" id="freespaceValue" value="Park Bench"></label>
-            <label>Free Space Description <input type="text" name="freespaceSubheadingValue" id="freespaceSubheadingValue" value="Free Space"></label>
-            <label>Free Space Placement
-                <select name="freespaceRandom" id="freespaceRandom">
-                    <option value="true">Random</option>
-                    <option value="false" selected>Center</option>
-                </select>
-            </label>
+            <div id="center-manual-options">
+                <label>Center Space Text <input type="text" name="centerValue" id="centerValue" value="Park Bench"></label>
+                <label>Center Space Description <input type="text" name="centerSubheadingValue" id="centerSubheadingValue" value="Free Space"></label>
+            </div>
         </fieldset>
 
         <fieldset>
             <legend>Card Size</legend>
-            <label>Number of Squares Wide <input type="number" name="width" id="width" value="5"></label>
-            <label>Number of Squares Tall <input type="number" name="height" id="height" value="5"></label>
+            <label>Grid Size (Square)
+                <select name="gridSize" id="gridSize">
+                    <option value="3">3x3</option>
+                    <option value="5" selected>5x5</option>
+                    <option value="7">7x7</option>
+                </select>
+            </label>
         </fieldset>
 
         <div class="button-group">
@@ -57,25 +67,37 @@
         import { storage } from './js/storage.js';
 
         const form = document.getElementById('generator-form');
+        const centerType = document.getElementById('centerType');
+        const centerManualOptions = document.getElementById('center-manual-options');
+
+        centerType.addEventListener('change', () => {
+            if (centerType.value === 'r') {
+                centerManualOptions.style.display = 'none';
+            } else {
+                centerManualOptions.style.display = 'block';
+            }
+        });
 
         function getConfig() {
             const formData = new FormData(form);
+            const size = parseInt(formData.get('gridSize'));
             return {
                 title: formData.get('title'),
                 words: document.getElementById('id-words').value,
-                width: parseInt(formData.get('width')),
-                height: parseInt(formData.get('height')),
-                freespace: formData.get('freespace') === 'true',
-                freespaceValue: formData.get('freespaceValue'),
-                freespaceSubheadingValue: formData.get('freespaceSubheadingValue'),
-                freespaceRandom: formData.get('freespaceRandom') === 'true'
+                width: size,
+                height: size,
+                centerType: formData.get('centerType'),
+                centerValue: formData.get('centerValue'),
+                centerSubheadingValue: formData.get('centerSubheadingValue'),
+                fontSize: formData.get('fontSize')
             };
         }
 
         document.getElementById('generate-local').addEventListener('click', () => {
             const config = getConfig();
-            // We clear current storage to force a new card generation based on these settings
-            storage.clearCard();
+            const cardData = bingoCore.generateCardData(config);
+            storage.saveCard(cardData);
+
             const queryString = bingoCore.encodeConfig(config);
             window.location.href = 'card.html?' + queryString;
         });
@@ -83,7 +105,8 @@
         document.getElementById('generate-link').addEventListener('click', () => {
             const config = getConfig();
             const queryString = bingoCore.encodeConfig(config);
-            let path = window.location.pathname; if (path.endsWith('index.html')) { path = path.replace('index.html', 'card.html'); } else if (path.endsWith('/')) { path += 'card.html'; } else { path += '/card.html'; } const url = window.location.origin + path + '?' + queryString;
+            const baseUrl = window.location.href.split('index.html')[0].split('?')[0].replace(/\/$/, '');
+            const url = baseUrl + '/card.html?' + queryString;
 
             const linkDisplay = document.getElementById('link-display');
             const linkText = document.getElementById('link-text');
