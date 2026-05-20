@@ -51,7 +51,7 @@
 
     <script type="module">
         import { bingoCore } from './js/bingo-core.js';
-        import { storage } from './js/storage.js';
+        import { storage as bingoStorage } from './js/storage.js';
         import { sync } from './js/sync.js';
 
         const gridElement = document.getElementById('bingo-grid');
@@ -72,8 +72,8 @@
 
         let myCardData = null;
         let otherPlayers = [];
-        let currentPlayerIndex = -1; // -1 means "Me"
-        let userInfo = storage.getUserInfo();
+        let currentIndex = -1; // -1 means "Me"
+        let userInfo = bingoStorage.getUserInfo();
 
         let currentSpaceIndex = -1;
 
@@ -81,23 +81,21 @@
 
         async function init() {
             // Priority 1: New config in URL
-            const url = window.location.href;
-            let search = "";
-            if (url.includes('?')) {
-                search = '?' + url.split('?')[1];
-            }
-
+            const search = window.location.search;
             if (search && search.includes('c=')) {
                 const config = bingoCore.decodeConfig(search);
                 if (config && config.words) {
+
                     myCardData = bingoCore.generateCardData(config, config.raw);
-                    storage.saveCard(myCardData);
+                    bingoStorage.saveCard(myCardData);
+                    // Do not replace state yet if we want myCardData to stay available for renderCard in this run
+                    // Actually, replaceState is fine as long as myCardData is already populated.
                     window.history.replaceState({}, document.title, window.location.pathname);
                 }
             }
 
             if (!myCardData) {
-                myCardData = storage.loadCard();
+                myCardData = bingoStorage.loadCard();
             }
 
             if (!myCardData) {
@@ -113,14 +111,14 @@
                     enableNotes: false,
                 };
                 myCardData = bingoCore.generateCardData(defaultConfig, 'default');
-                storage.saveCard(myCardData);
+                bingoStorage.saveCard(myCardData);
             }
 
             renderCard(myCardData);
 
             // Setup Multi-player
             if (!userInfo.nickname) {
-                modalElement.showModal();
+                nicknameModal.showModal();
             } else {
                 joinRoom();
             }
@@ -136,8 +134,8 @@
             } catch (e) {
                 if (e.message === 'Nickname already taken') {
                     userInfo.nickname = '';
-                    storage.setUserInfo(userInfo);
-                    modalElement.showModal();
+                    bingoStorage.setUserInfo(userInfo);
+                    nicknameModal.showModal();
                     nicknameError.textContent = 'Nickname already taken. Please choose another.';
                 }
             }
@@ -151,8 +149,8 @@
                     const available = await sync.isNicknameAvailable(myCardData.roomId, nick);
                     if (available) {
                         userInfo.nickname = nick;
-                        storage.setUserInfo(userInfo);
-                        modalElement.close();
+                        bingoStorage.setUserInfo(userInfo);
+                        nicknameModal.close();
                         joinRoom();
                     } else {
                         nicknameError.textContent = 'Nickname already taken.';
@@ -162,8 +160,8 @@
                     console.error("Firebase might not be configured:", err);
                     // If Firebase is not configured, we still want the UI to work locally
                     userInfo.nickname = nick;
-                    storage.setUserInfo(userInfo);
-                    modalElement.close();
+                    bingoStorage.setUserInfo(userInfo);
+                    nicknameModal.close();
                     currentPlayerName.textContent = `${nick} (You)`;
                 }
             }
@@ -190,7 +188,8 @@
         saveNoteBtn.addEventListener('click', () => {
             if (currentSpaceIndex !== -1) {
                 myCardData.spaces[currentSpaceIndex].note = noteTextarea.value;
-                storage.saveCard(myCardData);
+                bingoStorage.saveCard(myCardData);
+                sync.updateCard(myCardData.roomId, userInfo.id, myCardData);
                 noteModal.close();
             }
         });
@@ -220,14 +219,6 @@
                     cell.appendChild(sub);
                 }
 
-                if (!isReadOnly) {
-                    cell.addEventListener('click', () => {
-                        space.marked = !space.marked;
-                        cell.classList.toggle('marked');
-                        storage.saveCard(myCardData);
-                        sync.updateCard(myCardData.roomId, userInfo.id, myCardData);
-                    });
-                }
                 if (data.enableNotes) {
                     const noteIcon = document.createElement('div');
                     noteIcon.className = 'note-icon';
@@ -239,21 +230,26 @@
                     cell.appendChild(noteIcon);
                 }
 
-                cell.addEventListener('click', () => {
-                    const wasMarked = space.marked;
-                    space.marked = !wasMarked;
-                    cell.classList.toggle('marked');
+                if (!isReadOnly) {
+                    cell.addEventListener('click', () => {
 
-                    if (!wasMarked) { // If we just daubed it
-                        if (data.enableNotes && !space.isFreeSpace && !space.wasEverDaubed) {
+                        const wasMarked = space.marked;
+                        space.marked = !wasMarked;
+                        cell.classList.toggle('marked');
+
+                        if (!wasMarked) { // If we just daubed it
+
+                            if (data.enableNotes && !space.isFreeSpace && !space.wasEverDaubed) {
+                                space.wasEverDaubed = true;
+                                openNoteModal(index);
+                            }
                             space.wasEverDaubed = true;
-                            openNoteModal(index);
                         }
-                        space.wasEverDaubed = true;
-                    }
 
-                    storage.saveCard(data);
-                });
+                        bingoStorage.saveCard(myCardData);
+                        sync.updateCard(myCardData.roomId, userInfo.id, myCardData);
+                    });
+                }
                 gridElement.appendChild(cell);
             });
             updateNavigation();
