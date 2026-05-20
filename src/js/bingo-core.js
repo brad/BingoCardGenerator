@@ -8,7 +8,8 @@ export const bingoCore = {
             centerType = 'f',
             centerValue = "Free",
             centerSubheadingValue = "Free Space",
-            fontSize = 'm'
+            fontSize = 'm',
+            enableNotes = false,
         } = config;
 
         let possibleSpaces = words.split(',').map(s => s.trim()).filter(s => s !== "");
@@ -30,7 +31,9 @@ export const bingoCore = {
                     text: centerValue || "Free",
                     subheading: centerSubheadingValue || "",
                     isFreeSpace: centerType === 'f',
-                    marked: centerType === 'f'
+                    marked: centerType === 'f',
+                    note: "",
+                    wasEverDaubed: centerType === 'free',
                 });
             } else {
                 const text = shuffled.pop() || "";
@@ -38,7 +41,9 @@ export const bingoCore = {
                     text: text,
                     subheading: "",
                     isFreeSpace: false,
-                    marked: false
+                    marked: false,
+                    note: "",
+                    wasEverDaubed: false
                 });
             }
         }
@@ -48,6 +53,7 @@ export const bingoCore = {
             width,
             height,
             fontSize,
+            enableNotes: !!enableNotes,
             spaces
         };
     },
@@ -60,7 +66,8 @@ export const bingoCore = {
             ct: config.centerType, // f, m, r
             cv: config.centerValue,
             cs: config.centerSubheadingValue,
-            fz: config.fontSize // s, m, l
+            fz: config.fontSize, // s, m, l
+            en: !!config.enableNotes,
         };
         const str = JSON.stringify(compact);
         return 'c=' + btoa(unescape(encodeURIComponent(str)));
@@ -82,7 +89,8 @@ export const bingoCore = {
                     centerType: compact.ct || 'f',
                     centerValue: compact.cv || "Free",
                     centerSubheadingValue: compact.cs || "",
-                    fontSize: compact.fz || 'm'
+                    fontSize: compact.fz || 'm',
+                    enableNotes: !!compact.en,
                 };
             } catch (e) {
                 console.error("Failed to decode config", e);
@@ -97,7 +105,8 @@ export const bingoCore = {
             centerType: 'f',
             centerValue: 'Free',
             centerSubheadingValue: 'Free Space',
-            fontSize: 'm'
+            fontSize: 'm',
+            enableNotes: false,
         };
     }
 };
