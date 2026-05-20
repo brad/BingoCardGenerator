@@ -1,5 +1,5 @@
 export const bingoCore = {
-    generateCardData(config) {
+    generateCardData(config, roomId) {
         const { title, words, width, height, centerType, centerValue, centerSubheadingValue, fontSize } = config;
 
         let possibleSpaces = words.split(',').map(s => s.trim()).filter(s => s !== "");
@@ -39,7 +39,8 @@ export const bingoCore = {
             width,
             height,
             fontSize,
-            spaces
+            spaces,
+            roomId // Store the room ID (config string) in the card data
         };
     },
 
@@ -73,7 +74,8 @@ export const bingoCore = {
                     centerType: compact.ct,
                     centerValue: compact.cv,
                     centerSubheadingValue: compact.cs,
-                    fontSize: compact.fs
+                    fontSize: compact.fs,
+                    raw: encoded // Keep the raw encoded string as room ID
                 };
             } catch (e) {
                 console.error("Failed to decode config", e);
@@ -90,7 +92,8 @@ export const bingoCore = {
             centerType: freespace ? 'free' : 'random',
             centerValue: params.get('freespaceValue') || 'Free',
             centerSubheadingValue: params.get('freespaceSubheadingValue') || 'Free Space',
-            fontSize: 'medium'
+            fontSize: 'medium',
+            raw: 'default'
         };
     }
 };

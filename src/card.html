@@ -11,50 +11,74 @@
 <body class="standalone-body">
     <h1 id="card-title" class="bingo-header">Bingo Card</h1>
     <div class="bingo-container">
-        <div id="bingo-grid" class="bingo-grid"></div>
+        <div class="card-transition-container">
+            <div id="bingo-grid" class="bingo-grid"></div>
+        </div>
     </div>
+
+    <footer class="multiplayer-footer">
+        <button id="prev-player" class="nav-button" aria-label="Previous player">&lsaquo;</button>
+        <div class="player-info">
+            <div id="current-player-name" class="player-name">Loading...</div>
+            <div id="player-count" class="player-status"></div>
+        </div>
+        <button id="next-player" class="nav-button" aria-label="Next player">&rsaquo;</button>
+    </footer>
+
+    <dialog id="nickname-modal">
+        <div class="modal-content">
+            <h3>Enter Nickname</h3>
+            <p>Choose a name to join the game.</p>
+            <input type="text" id="nickname-input" placeholder="Your nickname" maxlength="15">
+            <div id="nickname-error" class="error-message"></div>
+            <div class="modal-buttons">
+                <button id="nickname-submit">Join Game</button>
+            </div>
+        </div>
+    </dialog>
 
     <script type="module">
         import { bingoCore } from './js/bingo-core.js';
         import { storage } from './js/storage.js';
+        import { sync } from './js/sync.js';
 
         const gridElement = document.getElementById('bingo-grid');
         const titleElement = document.getElementById('card-title');
+        const modalElement = document.getElementById('nickname-modal');
+        const nicknameInput = document.getElementById('nickname-input');
+        const nicknameSubmit = document.getElementById('nickname-submit');
+        const nicknameError = document.getElementById('nickname-error');
+        const currentPlayerName = document.getElementById('current-player-name');
+        const playerCount = document.getElementById('player-count');
+        const prevBtn = document.getElementById('prev-player');
+        const nextBtn = document.getElementById('next-player');
 
-        function init() {
-            // Priority 1: New config in URL
-            // Manually parse search because window.location.search might be stripped by service workers or servers
+        let myCardData = null;
+        let otherPlayers = [];
+        let currentIndex = -1; // -1 means "Me"
+        let userInfo = storage.getUserInfo();
+
+        async function init() {
             const url = window.location.href;
-            console.log("Card Page URL:", url);
             let search = "";
             if (url.includes('?')) {
                 search = '?' + url.split('?')[1];
-                console.log("Extracted search:", search);
             }
 
-            let cardData = null;
-
             if (search && search.includes('c=')) {
-                console.log("Found 'c' in search");
                 const config = bingoCore.decodeConfig(search);
-                console.log("Decoded config:", JSON.stringify(config));
                 if (config && config.words) {
-                    cardData = bingoCore.generateCardData(config);
-                    storage.saveCard(cardData);
-                    // Clear search to avoid re-generating on refresh
+                    myCardData = bingoCore.generateCardData(config, config.raw);
+                    storage.saveCard(myCardData);
                     window.history.replaceState({}, document.title, window.location.pathname);
                 }
             }
 
-            // Priority 2: Load from localStorage
-            if (!cardData) {
-                cardData = storage.loadCard();
-                console.log("Loaded from storage:", cardData ? "SUCCESS" : "FAIL");
+            if (!myCardData) {
+                myCardData = storage.loadCard();
             }
 
-            // Priority 3: Default card if nothing exists
-            if (!cardData) {
-                console.log("Using default config");
+            if (!myCardData) {
                 const defaultConfig = {
                     title: "Bingo",
                     words: "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25",
@@ -65,14 +89,74 @@
                     centerSubheadingValue: "Free Space",
                     fontSize: 'medium'
                 };
-                cardData = bingoCore.generateCardData(defaultConfig);
-                storage.saveCard(cardData);
+                myCardData = bingoCore.generateCardData(defaultConfig, 'default');
+                storage.saveCard(myCardData);
             }
 
-            renderCard(cardData);
+            renderCard(myCardData);
+
+            // Setup Multi-player
+            if (!userInfo.nickname) {
+                modalElement.showModal();
+            } else {
+                joinRoom();
+            }
         }
 
-        function renderCard(data) {
+        async function joinRoom() {
+            try {
+                await sync.joinRoom(myCardData.roomId, userInfo, myCardData);
+                sync.subscribeToRoom(myCardData.roomId, userInfo.id, (players) => {
+                    otherPlayers = players;
+                    updateNavigation();
+                });
+            } catch (e) {
+                if (e.message === 'Nickname already taken') {
+                    userInfo.nickname = '';
+                    storage.setUserInfo(userInfo);
+                    modalElement.showModal();
+                    nicknameError.textContent = 'Nickname already taken. Please choose another.';
+                }
+            }
+        }
+
+        nicknameSubmit.addEventListener('click', async () => {
+            const nick = nicknameInput.value.trim();
+            if (nick) {
+                nicknameSubmit.disabled = true;
+                try {
+                    const available = await sync.isNicknameAvailable(myCardData.roomId, nick);
+                    if (available) {
+                        userInfo.nickname = nick;
+                        storage.setUserInfo(userInfo);
+                        modalElement.close();
+                        joinRoom();
+                    } else {
+                        nicknameError.textContent = 'Nickname already taken.';
+                        nicknameSubmit.disabled = false;
+                    }
+                } catch (err) {
+                    console.error("Firebase might not be configured:", err);
+                    // If Firebase is not configured, we still want the UI to work locally
+                    userInfo.nickname = nick;
+                    storage.setUserInfo(userInfo);
+                    modalElement.close();
+                    currentPlayerName.textContent = `${nick} (You)`;
+                }
+            }
+        });
+
+        function updateNavigation() {
+            const total = otherPlayers.length + 1;
+            const displayIndex = currentIndex === -1 ? 1 : currentIndex + 2;
+            currentPlayerName.textContent = currentIndex === -1 ? `${userInfo.nickname} (You)` : otherPlayers[currentIndex].nickname;
+            playerCount.textContent = `Player ${displayIndex} of ${total}`;
+
+            prevBtn.disabled = currentIndex <= -1;
+            nextBtn.disabled = currentIndex >= otherPlayers.length - 1;
+        }
+
+        function renderCard(data, isReadOnly = false) {
             titleElement.textContent = data.title;
             document.body.className = `standalone-body font-${data.fontSize || 'medium'}`;
             gridElement.style.gridTemplateColumns = `repeat(${data.width}, 1fr)`;
@@ -81,7 +165,7 @@
 
             data.spaces.forEach((space, index) => {
                 const cell = document.createElement('div');
-                cell.className = 'bingo-cell' + (space.marked ? ' marked' : '');
+                cell.className = 'bingo-cell' + (space.marked ? ' marked' : '') + (isReadOnly ? ' readonly' : '');
                 const text = document.createElement('div');
                 text.textContent = space.text;
                 cell.appendChild(text);
@@ -91,14 +175,47 @@
                     sub.textContent = space.subheading;
                     cell.appendChild(sub);
                 }
-                cell.addEventListener('click', () => {
-                    space.marked = !space.marked;
-                    cell.classList.toggle('marked');
-                    storage.saveCard(data);
-                });
+
+                if (!isReadOnly) {
+                    cell.addEventListener('click', () => {
+                        space.marked = !space.marked;
+                        cell.classList.toggle('marked');
+                        storage.saveCard(myCardData);
+                        sync.updateCard(myCardData.roomId, userInfo.id, myCardData);
+                    });
+                }
                 gridElement.appendChild(cell);
             });
+            updateNavigation();
         }
+
+        async function switchPlayer(newIndex) {
+            const direction = newIndex > currentIndex ? 'slide-left' : 'slide-right';
+            gridElement.classList.add(direction);
+
+            setTimeout(() => {
+                currentIndex = newIndex;
+                const data = currentIndex === -1 ? myCardData : otherPlayers[currentIndex].cardData;
+                renderCard(data, currentIndex !== -1);
+
+                gridElement.classList.remove('slide-left', 'slide-right');
+                const opposite = direction === 'slide-left' ? 'slide-right' : 'slide-left';
+                gridElement.classList.add(opposite);
+
+                // Force reflow
+                gridElement.offsetHeight;
+
+                gridElement.classList.remove(opposite);
+            }, 300);
+        }
+
+        prevBtn.addEventListener('click', () => {
+            if (currentIndex > -1) switchPlayer(currentIndex - 1);
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentIndex < otherPlayers.length - 1) switchPlayer(currentIndex + 1);
+        });
 
         init();
 
