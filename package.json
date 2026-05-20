@@ -7,6 +7,9 @@
     "deploy": "echo 'Deployments are handled by GitHub Actions on push to main branch.'"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
+    "@types/node": "^25.9.0",
+    "playwright": "^1.60.0",
     "serve": "^14.2.1"
   }
 }

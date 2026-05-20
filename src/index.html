@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bingo Card Generator</title>
+    <link rel="icon" type="image/svg+xml" href="assets/images/icon.svg">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -17,10 +18,13 @@
             </label>
             <label>Font Size
                 <select name="fontSize" id="fontSize">
-                    <option value="small">Small</option>
-                    <option value="medium" selected>Medium</option>
-                    <option value="large">Large</option>
+                    <option value="s">Small</option>
+                    <option value="m" selected>Medium</option>
+                    <option value="l">Large</option>
                 </select>
+            </label>
+            <label class="checkbox-label">
+                <input type="checkbox" name="enableNotes" id="enableNotes"> Enable taking notes for each square
             </label>
         </fieldset>
 
@@ -28,9 +32,9 @@
             <legend>Center Space</legend>
             <label>Center Space Type
                 <select name="centerType" id="centerType">
-                    <option value="free" selected>Free Space (Pre-marked)</option>
-                    <option value="manual">Manual (Fixed text, not marked)</option>
-                    <option value="random">Randomized (From word list)</option>
+                    <option value="f" selected>Free Space (Pre-marked)</option>
+                    <option value="m">Manual (Fixed text, not marked)</option>
+                    <option value="r">Randomized (From word list)</option>
                 </select>
             </label>
             <div id="center-manual-options">
@@ -70,7 +74,7 @@
         const centerManualOptions = document.getElementById('center-manual-options');
 
         centerType.addEventListener('change', () => {
-            if (centerType.value === 'random') {
+            if (centerType.value === 'r') {
                 centerManualOptions.style.display = 'none';
             } else {
                 centerManualOptions.style.display = 'block';
@@ -88,7 +92,8 @@
                 centerType: formData.get('centerType'),
                 centerValue: formData.get('centerValue'),
                 centerSubheadingValue: formData.get('centerSubheadingValue'),
-                fontSize: formData.get('fontSize')
+                fontSize: formData.get('fontSize'),
+                enableNotes: formData.get('enableNotes') === 'on'
             };
         }
 
