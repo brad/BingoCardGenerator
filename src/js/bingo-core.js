@@ -1,6 +1,6 @@
 export const bingoCore = {
     generateCardData(config) {
-        const { title, words, width, height, centerType, centerValue, centerSubheadingValue, fontSize } = config;
+        const { title, words, width, height, centerType, centerValue, centerSubheadingValue, fontSize, enableNotes } = config;
 
         let possibleSpaces = words.split(',').map(s => s.trim()).filter(s => s !== "");
         const totalSquares = width * height;
@@ -21,7 +21,9 @@ export const bingoCore = {
                     text: centerValue,
                     subheading: centerSubheadingValue,
                     isFreeSpace: centerType === 'free',
-                    marked: centerType === 'free'
+                    marked: centerType === 'free',
+                    note: "",
+                    wasEverDaubed: centerType === 'free'
                 });
             } else {
                 const text = shuffled.pop() || "";
@@ -29,7 +31,9 @@ export const bingoCore = {
                     text: text,
                     subheading: "",
                     isFreeSpace: false,
-                    marked: false
+                    marked: false,
+                    note: "",
+                    wasEverDaubed: false
                 });
             }
         }
@@ -39,6 +43,7 @@ export const bingoCore = {
             width,
             height,
             fontSize,
+            enableNotes: !!enableNotes,
             spaces
         };
     },
@@ -52,7 +57,8 @@ export const bingoCore = {
             ct: config.centerType,
             cv: config.centerValue,
             cs: config.centerSubheadingValue,
-            fs: config.fontSize
+            fs: config.fontSize,
+            en: !!config.enableNotes
         };
         const str = JSON.stringify(compact);
         return 'c=' + btoa(unescape(encodeURIComponent(str)));
@@ -73,7 +79,8 @@ export const bingoCore = {
                     centerType: compact.ct,
                     centerValue: compact.cv,
                     centerSubheadingValue: compact.cs,
-                    fontSize: compact.fs
+                    fontSize: compact.fs,
+                    enableNotes: !!compact.en
                 };
             } catch (e) {
                 console.error("Failed to decode config", e);
@@ -90,7 +97,8 @@ export const bingoCore = {
             centerType: freespace ? 'free' : 'random',
             centerValue: params.get('freespaceValue') || 'Free',
             centerSubheadingValue: params.get('freespaceSubheadingValue') || 'Free Space',
-            fontSize: 'medium'
+            fontSize: 'medium',
+            enableNotes: false
         };
     }
 };

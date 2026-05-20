@@ -22,6 +22,9 @@
                     <option value="large">Large</option>
                 </select>
             </label>
+            <label class="checkbox-label">
+                <input type="checkbox" name="enableNotes" id="enableNotes"> Enable taking notes for each square
+            </label>
         </fieldset>
 
         <fieldset>
@@ -88,7 +91,8 @@
                 centerType: formData.get('centerType'),
                 centerValue: formData.get('centerValue'),
                 centerSubheadingValue: formData.get('centerSubheadingValue'),
-                fontSize: formData.get('fontSize')
+                fontSize: formData.get('fontSize'),
+                enableNotes: formData.get('enableNotes') === 'on'
             };
         }
 
