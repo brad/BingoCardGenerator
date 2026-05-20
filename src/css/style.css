@@ -158,13 +158,13 @@ button:hover, input[type="submit"]:hover {
     color: #666;
 }
 
-/* Font Size Classes */
-.font-small .bingo-cell { font-size: 0.6rem; }
-.font-medium .bingo-cell { font-size: 0.8rem; }
-.font-large .bingo-cell { font-size: 1rem; }
+/* Compact Font Size Classes */
+.font-s .bingo-cell { font-size: 0.6rem; }
+.font-m .bingo-cell { font-size: 0.8rem; }
+.font-l .bingo-cell { font-size: 1rem; }
 
 @media (min-width: 600px) {
-    .font-small .bingo-cell { font-size: 0.8rem; }
-    .font-medium .bingo-cell { font-size: 1rem; }
-    .font-large .bingo-cell { font-size: 1.2rem; }
+    .font-s .bingo-cell { font-size: 0.8rem; }
+    .font-m .bingo-cell { font-size: 1rem; }
+    .font-l .bingo-cell { font-size: 1.2rem; }
 }
