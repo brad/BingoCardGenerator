@@ -12,10 +12,33 @@
 <body class="standalone-body">
     <h1 id="card-title" class="bingo-header">Bingo Card</h1>
     <div class="bingo-container">
-        <div id="bingo-grid" class="bingo-grid"></div>
+        <div class="card-transition-container">
+            <div id="bingo-grid" class="bingo-grid"></div>
+        </div>
     </div>
 
-    <dialog id="note-modal">
+    <footer class="multiplayer-footer">
+        <button id="prev-player" class="nav-button" aria-label="Previous player">&lsaquo;</button>
+        <div class="player-info">
+            <div id="current-player-name" class="player-name">Loading...</div>
+            <div id="player-count" class="player-status"></div>
+        </div>
+        <button id="next-player" class="nav-button" aria-label="Next player">&rsaquo;</button>
+    </footer>
+
+    <dialog id="nickname-modal">
+        <div class="modal-content">
+            <h3>Enter Nickname</h3>
+            <p>Choose a name to join the game.</p>
+            <input type="text" id="nickname-input" placeholder="Your nickname" maxlength="15">
+            <div id="nickname-error" class="error-message"></div>
+            <div class="modal-buttons">
+                <button id="nickname-submit">Join Game</button>
+            </div>
+        </div>
+    </dialog>
+
+  <dialog id="note-modal">
         <div class="modal-content">
             <h3 id="modal-title">Square Note</h3>
             <textarea id="note-text" placeholder="Enter your note here..."></textarea>
@@ -29,21 +52,34 @@
     <script type="module">
         import { bingoCore } from './js/bingo-core.js';
         import { storage } from './js/storage.js';
+        import { sync } from './js/sync.js';
 
         const gridElement = document.getElementById('bingo-grid');
         const titleElement = document.getElementById('card-title');
+        const nicknameModal = document.getElementById('nickname-modal');
+        const nicknameInput = document.getElementById('nickname-input');
+        const nicknameSubmit = document.getElementById('nickname-submit');
+        const nicknameError = document.getElementById('nickname-error');
+        const currentPlayerName = document.getElementById('current-player-name');
+        const playerCount = document.getElementById('player-count');
+        const prevBtn = document.getElementById('prev-player');
+        const nextBtn = document.getElementById('next-player');
         const noteModal = document.getElementById('note-modal');
         const noteTextarea = document.getElementById('note-text');
         const saveNoteBtn = document.getElementById('save-note');
         const closeModalBtn = document.getElementById('close-modal');
         const modalTitle = document.getElementById('modal-title');
 
+        let myCardData = null;
+        let otherPlayers = [];
+        let currentPlayerIndex = -1; // -1 means "Me"
+        let userInfo = storage.getUserInfo();
+
         let currentSpaceIndex = -1;
-        let currentCardData = null;
 
         const PENCIL_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>`;
 
-        function init() {
+        async function init() {
             // Priority 1: New config in URL
             const url = window.location.href;
             let search = "";
@@ -54,19 +90,17 @@
             if (search && search.includes('c=')) {
                 const config = bingoCore.decodeConfig(search);
                 if (config && config.words) {
-                    currentCardData = bingoCore.generateCardData(config);
-                    storage.saveCard(currentCardData);
+                    myCardData = bingoCore.generateCardData(config, config.raw);
+                    storage.saveCard(myCardData);
                     window.history.replaceState({}, document.title, window.location.pathname);
                 }
             }
 
-            // Priority 2: Load from localStorage
-            if (!currentCardData) {
-                currentCardData = storage.loadCard();
+            if (!myCardData) {
+                myCardData = storage.loadCard();
             }
 
-            // Priority 3: Default card if nothing exists
-            if (!currentCardData) {
+            if (!myCardData) {
                 const defaultConfig = {
                     title: "Bingo",
                     words: "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25",
@@ -78,16 +112,76 @@
                     fontSize: 'm',
                     enableNotes: false,
                 };
-                currentCardData = bingoCore.generateCardData(defaultConfig);
-                storage.saveCard(currentCardData);
+                myCardData = bingoCore.generateCardData(defaultConfig, 'default');
+                storage.saveCard(myCardData);
             }
 
-            renderCard(currentCardData);
+            renderCard(myCardData);
+
+            // Setup Multi-player
+            if (!userInfo.nickname) {
+                modalElement.showModal();
+            } else {
+                joinRoom();
+            }
         }
 
+        async function joinRoom() {
+            try {
+                await sync.joinRoom(myCardData.roomId, userInfo, myCardData);
+                sync.subscribeToRoom(myCardData.roomId, userInfo.id, (players) => {
+                    otherPlayers = players;
+                    updateNavigation();
+                });
+            } catch (e) {
+                if (e.message === 'Nickname already taken') {
+                    userInfo.nickname = '';
+                    storage.setUserInfo(userInfo);
+                    modalElement.showModal();
+                    nicknameError.textContent = 'Nickname already taken. Please choose another.';
+                }
+            }
+        }
+
+        nicknameSubmit.addEventListener('click', async () => {
+            const nick = nicknameInput.value.trim();
+            if (nick) {
+                nicknameSubmit.disabled = true;
+                try {
+                    const available = await sync.isNicknameAvailable(myCardData.roomId, nick);
+                    if (available) {
+                        userInfo.nickname = nick;
+                        storage.setUserInfo(userInfo);
+                        modalElement.close();
+                        joinRoom();
+                    } else {
+                        nicknameError.textContent = 'Nickname already taken.';
+                        nicknameSubmit.disabled = false;
+                    }
+                } catch (err) {
+                    console.error("Firebase might not be configured:", err);
+                    // If Firebase is not configured, we still want the UI to work locally
+                    userInfo.nickname = nick;
+                    storage.setUserInfo(userInfo);
+                    modalElement.close();
+                    currentPlayerName.textContent = `${nick} (You)`;
+                }
+            }
+        });
+
+        function updateNavigation() {
+            const total = otherPlayers.length + 1;
+            const displayIndex = currentIndex === -1 ? 1 : currentIndex + 2;
+            currentPlayerName.textContent = currentIndex === -1 ? `${userInfo.nickname} (You)` : otherPlayers[currentIndex].nickname;
+            playerCount.textContent = `Player ${displayIndex} of ${total}`;
+
+            prevBtn.disabled = currentIndex <= -1;
+            nextBtn.disabled = currentIndex >= otherPlayers.length - 1;
+        }
+      
         function openNoteModal(index) {
             currentSpaceIndex = index;
-            const space = currentCardData.spaces[index];
+            const space = myCardData.spaces[index];
             modalTitle.textContent = `Note for "${space.text}"`;
             noteTextarea.value = space.note || "";
             noteModal.showModal();
@@ -95,8 +189,8 @@
 
         saveNoteBtn.addEventListener('click', () => {
             if (currentSpaceIndex !== -1) {
-                currentCardData.spaces[currentSpaceIndex].note = noteTextarea.value;
-                storage.saveCard(currentCardData);
+                myCardData.spaces[currentSpaceIndex].note = noteTextarea.value;
+                storage.saveCard(myCardData);
                 noteModal.close();
             }
         });
@@ -105,7 +199,7 @@
             noteModal.close();
         });
 
-        function renderCard(data) {
+        function renderCard(data, isReadOnly = false) {
             titleElement.textContent = data.title;
             document.body.className = `standalone-body font-${data.fontSize || 'm'}`;
             gridElement.style.gridTemplateColumns = `repeat(${data.width}, 1fr)`;
@@ -114,8 +208,7 @@
 
             data.spaces.forEach((space, index) => {
                 const cell = document.createElement('div');
-                cell.className = 'bingo-cell' + (space.marked ? ' marked' : '');
-
+                cell.className = 'bingo-cell' + (space.marked ? ' marked' : '') + (isReadOnly ? ' readonly' : '');
                 const text = document.createElement('div');
                 text.textContent = space.text;
                 cell.appendChild(text);
@@ -127,6 +220,14 @@
                     cell.appendChild(sub);
                 }
 
+                if (!isReadOnly) {
+                    cell.addEventListener('click', () => {
+                        space.marked = !space.marked;
+                        cell.classList.toggle('marked');
+                        storage.saveCard(myCardData);
+                        sync.updateCard(myCardData.roomId, userInfo.id, myCardData);
+                    });
+                }
                 if (data.enableNotes) {
                     const noteIcon = document.createElement('div');
                     noteIcon.className = 'note-icon';
@@ -155,7 +256,36 @@
                 });
                 gridElement.appendChild(cell);
             });
+            updateNavigation();
         }
+
+        async function switchPlayer(newIndex) {
+            const direction = newIndex > currentIndex ? 'slide-left' : 'slide-right';
+            gridElement.classList.add(direction);
+
+            setTimeout(() => {
+                currentIndex = newIndex;
+                const data = currentIndex === -1 ? myCardData : otherPlayers[currentIndex].cardData;
+                renderCard(data, currentIndex !== -1);
+
+                gridElement.classList.remove('slide-left', 'slide-right');
+                const opposite = direction === 'slide-left' ? 'slide-right' : 'slide-left';
+                gridElement.classList.add(opposite);
+
+                // Force reflow
+                gridElement.offsetHeight;
+
+                gridElement.classList.remove(opposite);
+            }, 300);
+        }
+
+        prevBtn.addEventListener('click', () => {
+            if (currentIndex > -1) switchPlayer(currentIndex - 1);
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentIndex < otherPlayers.length - 1) switchPlayer(currentIndex + 1);
+        });
 
         init();
 

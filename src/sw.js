@@ -1,30 +1,49 @@
-const CACHE_NAME = 'bingo-v1';
+const CACHE_NAME = 'bingo-v2';
 const ASSETS = [
   'card.html',
   'css/style.css',
   'js/bingo-core.js',
   'js/storage.js',
+  'js/sync.js',
+  'js/firebase-config.js',
   'assets/images/daub1.png',
   'assets/images/icon.svg',
   'manifest.json'
 ];
 
+// Firebase SDK URLs to cache
+const FIREBASE_SDK = [
+  'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js',
+  'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js'
+];
+
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
+      cache.addAll(FIREBASE_SDK);
       return cache.addAll(ASSETS);
     })
   );
 });
 
-self.addEventListener('fetch', (event) => {
-    // If it's card.html, we don't want to cache it because it's dynamic via query params
-    // and the current fetch strategy is Cache-First which fails for new query params if the base is cached?
-    // Wait, caches.match(event.request) should differentiate based on query string.
-    // However, the PWA start_url is card.html, so it's tricky.
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (cacheName !== CACHE_NAME) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
+  );
+});
 
-    // For now, let's try Network-First for card.html
-    if (event.request.url.includes('card.html')) {
+self.addEventListener('fetch', (event) => {
+    // For card.html and Firebase SDKs, try Network-First to get latest state/SDK
+    // but fall back to cache for offline support.
+    if (event.request.url.includes('card.html') || event.request.url.includes('gstatic.com')) {
         event.respondWith(
             fetch(event.request).catch(() => caches.match(event.request))
         );

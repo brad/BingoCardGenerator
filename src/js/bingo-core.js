@@ -54,7 +54,8 @@ export const bingoCore = {
             height,
             fontSize,
             enableNotes: !!enableNotes,
-            spaces
+            spaces,
+            roomId, // Store the room ID (config string) in the card data
         };
     },
 
@@ -91,6 +92,7 @@ export const bingoCore = {
                     centerSubheadingValue: compact.cs || "",
                     fontSize: compact.fz || 'm',
                     enableNotes: !!compact.en,
+                    raw: encoded, // Keep the raw encoded string as room ID
                 };
             } catch (e) {
                 console.error("Failed to decode config", e);
@@ -107,6 +109,7 @@ export const bingoCore = {
             centerSubheadingValue: 'Free Space',
             fontSize: 'm',
             enableNotes: false,
+            raw: 'default',
         };
     }
 };
