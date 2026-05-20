@@ -95,6 +95,7 @@
 
         document.getElementById('generate-local').addEventListener('click', () => {
             const config = getConfig();
+            // Generate and save immediately to handle environments that might strip query params on redirect
             const cardData = bingoCore.generateCardData(config);
             storage.saveCard(cardData);
 

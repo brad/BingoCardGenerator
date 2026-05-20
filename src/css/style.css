@@ -87,10 +87,10 @@ button:hover, input[type="submit"]:hover {
     padding: 0;
     max-width: none;
     height: 100vh;
-    height: 100svh;
+    height: 100svh; /* Use SVH for modern mobile browsers to exclude address bar */
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow: hidden; /* Prevent scrolling */
 }
 
 .bingo-header {
@@ -115,7 +115,7 @@ button:hover, input[type="submit"]:hover {
     display: grid;
     gap: 5px;
     width: 100%;
-    max-width: min(90vw, 80vh);
+    max-width: min(90vw, 80vh); /* Keep it roughly square and fitting within viewport */
     aspect-ratio: 1 / 1;
 }
 

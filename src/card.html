@@ -37,9 +37,11 @@
 
             if (!cardData) {
                 cardData = storage.loadCard();
+                console.log("Loaded from storage:", cardData ? "SUCCESS" : "FAIL");
             }
 
             if (!cardData) {
+                console.log("Using default config");
                 const defaultConfig = {
                     title: "Bingo",
                     words: "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25",
