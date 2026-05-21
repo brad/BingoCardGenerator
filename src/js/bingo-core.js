@@ -11,6 +11,13 @@ export const bingoCore = {
         enableNotes: false,
     },
 
+    sanitizeRoomId(raw) {
+        if (!raw || raw === 'default') return 'default';
+        // Base64 encoded JSON can contain characters like '/', '+', '=' which are problematic for Firestore document IDs.
+        // We replace everything non-alphanumeric with underscores for maximum safety.
+        return raw.replace(/[^a-zA-Z0-9]/g, '_');
+    },
+
     generateCardData(config = {}, roomId = 'default') {
         const merged = { ...this.DEFAULT_CONFIG, ...config };
         const {
@@ -68,7 +75,7 @@ export const bingoCore = {
             fontSize,
             enableNotes: !!enableNotes,
             spaces,
-            roomId: roomId, // Store the room ID (config string) in the card data
+            roomId: this.sanitizeRoomId(roomId), // Store the room ID (config string) in the card data
         };
     },
 

@@ -7,7 +7,8 @@ import {
     where,
     getDoc,
     serverTimestamp,
-    runTransaction
+    runTransaction,
+    getCountFromServer
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { db } from './firebase-config.js';
 
@@ -16,6 +17,12 @@ export const sync = {
         const nickRef = doc(db, 'rooms', roomId, 'nicknames', nickname.toLowerCase());
         const docSnap = await getDoc(nickRef);
         return !docSnap.exists();
+    },
+
+    async getPlayerCount(roomId) {
+        const playersCol = collection(db, 'rooms', roomId, 'players');
+        const snapshot = await getCountFromServer(playersCol);
+        return snapshot.data().count;
     },
 
     async joinRoom(roomId, userInfo, cardData) {

@@ -85,11 +85,8 @@
             if (search && search.includes('c=')) {
                 const config = bingoCore.decodeConfig(search);
                 if (config && config.words) {
-
                     myCardData = bingoCore.generateCardData(config, config.raw);
                     bingoStorage.saveCard(myCardData);
-                    // Do not replace state yet if we want myCardData to stay available for renderCard in this run
-                    // Actually, replaceState is fine as long as myCardData is already populated.
                     window.history.replaceState({}, document.title, window.location.pathname);
                 }
             }
@@ -103,10 +100,26 @@
                 bingoStorage.saveCard(myCardData);
             }
 
+            // Ensure roomId is sanitized (for migration)
+            if (myCardData && myCardData.roomId) {
+                const sanitized = bingoCore.sanitizeRoomId(myCardData.roomId);
+                if (sanitized !== myCardData.roomId) {
+                    myCardData.roomId = sanitized;
+                    bingoStorage.saveCard(myCardData);
+                }
+            }
+
             renderCard(myCardData);
 
             // Setup Multi-player
             if (!userInfo.nickname) {
+                try {
+                    const count = await sync.getPlayerCount(myCardData.roomId);
+                    nicknameInput.value = `Player ${count + 1}`;
+                } catch (e) {
+                    console.error("Firebase might not be configured or room empty:", e);
+                    nicknameInput.value = "Player 1";
+                }
                 nicknameModal.showModal();
             } else {
                 joinRoom();
@@ -126,6 +139,10 @@
                     bingoStorage.setUserInfo(userInfo);
                     nicknameModal.showModal();
                     nicknameError.textContent = 'Nickname already taken. Please choose another.';
+                } else {
+                    console.error("Join room failed:", e);
+                    // Still update navigation even if sync fails so UI doesn't hang
+                    updateNavigation();
                 }
             }
         }
@@ -151,7 +168,7 @@
                     userInfo.nickname = nick;
                     bingoStorage.setUserInfo(userInfo);
                     nicknameModal.close();
-                    currentPlayerName.textContent = `${nick} (You)`;
+                    updateNavigation();
                 }
             }
         });
@@ -159,7 +176,13 @@
         function updateNavigation() {
             const total = otherPlayers.length + 1;
             const displayIndex = currentIndex === -1 ? 1 : currentIndex + 2;
-            currentPlayerName.textContent = currentIndex === -1 ? `${userInfo.nickname} (You)` : otherPlayers[currentIndex].nickname;
+
+            if (userInfo.nickname) {
+                currentPlayerName.textContent = currentIndex === -1 ? `${userInfo.nickname} (You)` : otherPlayers[currentIndex].nickname;
+            } else {
+                currentPlayerName.textContent = "Guest";
+            }
+
             playerCount.textContent = `Player ${displayIndex} of ${total}`;
 
             prevBtn.disabled = currentIndex <= -1;
