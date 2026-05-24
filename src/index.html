@@ -68,6 +68,7 @@
     <script type="module">
         import { bingoCore } from './js/bingo-core.js';
         import { storage } from './js/storage.js';
+        import { sync } from './js/sync.js';
 
         const form = document.getElementById('generator-form');
         const centerType = document.getElementById('centerType');
@@ -99,30 +100,43 @@
 
         document.getElementById('generate-local').addEventListener('click', () => {
             const config = getConfig();
-            // Generate and save immediately to handle environments that might strip query params on redirect
-            const cardData = bingoCore.generateCardData(config);
-            storage.saveCard(cardData);
-
             const queryString = bingoCore.encodeConfig(config);
             window.location.href = 'card.html?' + queryString;
         });
 
-        document.getElementById('generate-link').addEventListener('click', () => {
+        document.getElementById('generate-link').addEventListener('click', async () => {
             const config = getConfig();
-            const queryString = bingoCore.encodeConfig(config);
-            const baseUrl = window.location.href.split('index.html')[0].split('?')[0].replace(/\/$/, '');
-            const url = baseUrl + '/card.html?' + queryString;
+            let roomId = bingoCore.generateRoomId();
+            let isAvailable = false;
+            let attempts = 0;
 
-            const linkDisplay = document.getElementById('link-display');
-            const linkText = document.getElementById('link-text');
-            linkText.textContent = url;
-            linkDisplay.style.display = 'block';
+            while (!isAvailable && attempts < 5) {
+                isAvailable = await sync.isRoomIdAvailable(roomId);
+                if (!isAvailable) {
+                    roomId = bingoCore.generateRoomId();
+                    attempts++;
+                }
+            }
 
-            navigator.clipboard.writeText(url).then(() => {
-                alert('Link copied to clipboard!');
-            }).catch(err => {
-                console.error('Failed to copy: ', err);
-            });
+            try {
+                await sync.saveRoomConfig(roomId, config);
+                const baseUrl = window.location.href.split('index.html')[0].split('?')[0].replace(/\/$/, '');
+                const url = baseUrl + '/card.html?room=' + roomId;
+
+                const linkDisplay = document.getElementById('link-display');
+                const linkText = document.getElementById('link-text');
+                linkText.textContent = url;
+                linkDisplay.style.display = 'block';
+
+                navigator.clipboard.writeText(url).then(() => {
+                    alert('Link copied to clipboard!');
+                }).catch(err => {
+                    console.error('Failed to copy: ', err);
+                });
+            } catch (err) {
+                console.error('Failed to save room config: ', err);
+                alert('Failed to generate link. Please try again.');
+            }
         });
     </script>
 </body>

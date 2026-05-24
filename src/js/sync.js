@@ -4,11 +4,11 @@ import {
     onSnapshot,
     collection,
     query,
-    where,
     getDoc,
     serverTimestamp,
     runTransaction,
-    getCountFromServer
+    getCountFromServer,
+    deleteField
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { db } from './firebase-config.js';
 
@@ -19,13 +19,43 @@ export const sync = {
         return !docSnap.exists();
     },
 
+    async isRoomIdAvailable(roomId) {
+        const roomRef = doc(db, 'rooms', roomId);
+        const docSnap = await getDoc(roomRef);
+        return !docSnap.exists();
+    },
+
     async getPlayerCount(roomId) {
         const playersCol = collection(db, 'rooms', roomId, 'players');
         const snapshot = await getCountFromServer(playersCol);
         return snapshot.data().count;
     },
 
+    async saveRoomConfig(roomId, config) {
+        const roomRef = doc(db, 'rooms', roomId);
+        // Set expiresAt to 48 hours from now
+        const expiresAt = new Date();
+        expiresAt.setHours(expiresAt.getHours() + 48);
+
+        await setDoc(roomRef, {
+            config: config,
+            createdAt: serverTimestamp(),
+            expiresAt: expiresAt,
+            active: false
+        });
+    },
+
+    async getRoomConfig(roomId) {
+        const roomRef = doc(db, 'rooms', roomId);
+        const docSnap = await getDoc(roomRef);
+        if (docSnap.exists()) {
+            return docSnap.data().config;
+        }
+        return null;
+    },
+
     async joinRoom(roomId, userInfo, cardData) {
+        const roomRef = doc(db, 'rooms', roomId);
         const playerRef = doc(db, 'rooms', roomId, 'players', userInfo.id);
         const nickRef = doc(db, 'rooms', roomId, 'nicknames', userInfo.nickname.toLowerCase());
 
@@ -42,6 +72,12 @@ export const sync = {
                     cardData: cardData,
                     lastSeen: serverTimestamp()
                 }, { merge: true });
+
+                // If a player joins, ensure the room is marked active and remove expiresAt
+                transaction.update(roomRef, {
+                    active: true,
+                    expiresAt: deleteField()
+                });
             });
             return true;
         } catch (e) {
@@ -64,7 +100,6 @@ export const sync = {
 
     subscribeToRoom(roomId, userId, callback) {
         const playersCol = collection(db, 'rooms', roomId, 'players');
-        // Listen to all players except self
         const q = query(playersCol);
 
         return onSnapshot(q, (snapshot) => {
