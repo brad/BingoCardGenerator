@@ -64,7 +64,6 @@ select {
 
 button, input[type="submit"] {
     background-color: var(--primary-color);
-    color: white;
     border: none;
     padding: 10px 20px;
     border-radius: 4px;
@@ -97,7 +96,6 @@ button:hover, input[type="submit"]:hover {
     padding: 10px;
     text-align: center;
     background: var(--primary-color);
-    color: white;
     margin: 0;
     flex-shrink: 0;
 }
@@ -207,7 +205,6 @@ dialog::backdrop {
 .modal-content {
     display: flex;
     flex-direction: column;
-    gap: 15px;
 }
 
 .modal-content h3 {
@@ -243,7 +240,6 @@ dialog::backdrop {
 .multiplayer-footer {
     height: 60px;
     background: #333;
-    color: white;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -254,7 +250,6 @@ dialog::backdrop {
 .nav-button {
     background: transparent;
     border: 2px solid white;
-    color: white;
     width: 40px;
     height: 40px;
     border-radius: 50%;
@@ -338,7 +333,6 @@ dialog::backdrop {
 .modal-content {
     display: flex;
     flex-direction: column;
-    gap: 15px;
 }
 
 .modal-content h3 {
@@ -395,7 +389,6 @@ dialog::backdrop {
     top: 5px;
     right: 5px;
     background: rgba(0, 0, 0, 0.5);
-    color: white;
     border: none;
     border-radius: 50%;
     width: 24px;
@@ -458,28 +451,25 @@ dialog::backdrop {
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 15px;
     position: relative;
     padding: 10px;
     background: var(--primary-color);
-    color: white;
 }
 
 .bingo-header h1 {
+    color: white;
     margin: 0;
     font-size: 1.5rem;
 }
 
 #help-btn {
-    position: absolute;
-    right: 15px;
-    top: 50%;
-    transform: translateY(-50%);
+    color: white;
     width: 28px;
     height: 28px;
     border-radius: 50%;
     border: 2px solid white;
     background: transparent;
-    color: white;
     padding: 0;
     font-weight: bold;
     font-size: 18px;
