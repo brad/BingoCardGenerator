@@ -1,0 +1,121 @@
+ INFO  Accepting connections at http://localhost:3000
+ HTTP  5/24/2026 10:21:47 PM ::1 GET /index.html
+ HTTP  5/24/2026 10:21:47 PM ::1 Returned 301 in 21 ms
+ HTTP  5/24/2026 10:21:47 PM ::1 GET /index
+ HTTP  5/24/2026 10:21:47 PM ::1 Returned 301 in 3 ms
+ HTTP  5/24/2026 10:21:47 PM ::1 GET /
+ HTTP  5/24/2026 10:21:47 PM ::1 Returned 200 in 8 ms
+ HTTP  5/24/2026 10:21:47 PM ::1 GET /css/style.css
+ HTTP  5/24/2026 10:21:47 PM ::1 Returned 200 in 3 ms
+ HTTP  5/24/2026 10:21:47 PM ::1 GET /js/bingo-core.js
+ HTTP  5/24/2026 10:21:47 PM ::1 GET /js/storage.js
+ HTTP  5/24/2026 10:21:47 PM ::1 GET /js/sync.js
+ HTTP  5/24/2026 10:21:47 PM ::1 Returned 200 in 7 ms
+ HTTP  5/24/2026 10:21:47 PM ::1 Returned 200 in 6 ms
+ HTTP  5/24/2026 10:21:47 PM ::1 Returned 200 in 6 ms
+ HTTP  5/24/2026 10:21:47 PM ::1 GET /js/firebase-config.js
+ HTTP  5/24/2026 10:21:47 PM ::1 Returned 200 in 4 ms
+ HTTP  5/24/2026 10:21:47 PM ::1 GET /sw.js
+ HTTP  5/24/2026 10:21:47 PM ::1 Returned 200 in 2 ms
+ HTTP  5/24/2026 10:21:47 PM ::1 GET /
+ HTTP  5/24/2026 10:21:47 PM ::1 Returned 304 in 4 ms
+ HTTP  5/24/2026 10:21:47 PM ::1 GET /card.html
+ HTTP  5/24/2026 10:21:47 PM ::1 Returned 301 in 0 ms
+ HTTP  5/24/2026 10:21:47 PM ::1 GET /
+ HTTP  5/24/2026 10:21:47 PM ::1 GET /css/style.css
+ HTTP  5/24/2026 10:21:47 PM ::1 Returned 304 in 3 ms
+ HTTP  5/24/2026 10:21:47 PM ::1 Returned 304 in 2 ms
+ HTTP  5/24/2026 10:21:47 PM ::1 GET /card
+ HTTP  5/24/2026 10:21:47 PM ::1 GET /js/bingo-core.js
+ HTTP  5/24/2026 10:21:47 PM ::1 GET /js/storage.js
+ HTTP  5/24/2026 10:21:47 PM ::1 Returned 304 in 1 ms
+ HTTP  5/24/2026 10:21:47 PM ::1 Returned 304 in 2 ms
+ HTTP  5/24/2026 10:21:47 PM ::1 Returned 200 in 5 ms
+ HTTP  5/24/2026 10:21:47 PM ::1 GET /js/sync.js
+ HTTP  5/24/2026 10:21:47 PM ::1 Returned 304 in 0 ms
+ HTTP  5/24/2026 10:21:47 PM ::1 GET /js/firebase-config.js
+ HTTP  5/24/2026 10:21:47 PM ::1 Returned 304 in 0 ms
+ HTTP  5/24/2026 10:21:47 PM ::1 GET /assets/images/daub1.png
+ HTTP  5/24/2026 10:21:47 PM ::1 Returned 200 in 2 ms
+ HTTP  5/24/2026 10:21:47 PM ::1 GET /assets/images/icon.svg
+ HTTP  5/24/2026 10:21:47 PM ::1 Returned 200 in 2 ms
+ HTTP  5/24/2026 10:21:47 PM ::1 GET /manifest.json
+ HTTP  5/24/2026 10:21:47 PM ::1 Returned 200 in 1 ms
+ HTTP  5/24/2026 10:21:51 PM ::1 GET /card.html?c=eyJ0IjoiRGF5IGluIHRoZSBQYXJrIEJpbmdvIiwidyI6IkZsb3dlcnMsQmVlcyxQaWNuaWNrZXJzLEFudHMsTGl0dGxlIEtpZCBDcnlpbmcsSG9sZGluZyBIYW5kcyxQZXJzb24gTmFwcGluZyxBIEJhbGxvb24sRG9ncyxGcmlzYmVlLFN0cm9sbGVyLENoZXNzIFBsYXllcnMsUm9sbGVyc2thdGVzLE11c2ljaWFuLEp1Z2dsZXIsUGhvdG9ncmFwaGVyLFBhaW50ZXIsUGxhc3RpYyBCYWcgaW4gVHJlZSxTcXVpcnJlbCxQaWdlb24sQmljeWNsZSBCdWlsdCBmb3IgVHdvLEljZSBDcmVhbSxTdW5iYXRoZXIsUGVyc29uIFJlYWRpbmcgTmV3c3BhcGVyLFBlcnNvbiBMaXN0ZW5pbmcgdG8gUmFkaW8sU2lkZXdhbGsgQ2hhbGssSG9wc2NvdGNoIiwicyI6NSwiY3QiOiJmIiwiY3YiOiJQYXJrIEJlbmNoIiwiY3MiOiJGcmVlIFNwYWNlIiwiZnoiOiJtIiwiZW4iOmZhbHNlfQ==
+ HTTP  5/24/2026 10:21:51 PM ::1 Returned 301 in 1 ms
+ HTTP  5/24/2026 10:21:51 PM ::1 GET /card
+ HTTP  5/24/2026 10:21:51 PM ::1 Returned 304 in 2 ms
+ HTTP  5/24/2026 10:21:51 PM ::1 GET /css/style.css
+ HTTP  5/24/2026 10:21:51 PM ::1 Returned 304 in 1 ms
+ HTTP  5/24/2026 10:21:51 PM ::1 GET /js/bingo-core.js
+ HTTP  5/24/2026 10:21:51 PM ::1 GET /js/storage.js
+ HTTP  5/24/2026 10:21:51 PM ::1 GET /js/sync.js
+ HTTP  5/24/2026 10:21:51 PM ::1 Returned 304 in 2 ms
+ HTTP  5/24/2026 10:21:51 PM ::1 Returned 304 in 3 ms
+ HTTP  5/24/2026 10:21:51 PM ::1 Returned 304 in 1 ms
+ HTTP  5/24/2026 10:21:51 PM ::1 GET /js/firebase-config.js
+ HTTP  5/24/2026 10:21:51 PM ::1 Returned 304 in 1 ms
+ HTTP  5/24/2026 10:21:51 PM ::1 GET /assets/images/daub1.png
+ HTTP  5/24/2026 10:21:51 PM ::1 Returned 304 in 1 ms
+ HTTP  5/24/2026 10:21:52 PM ::1 GET /sw.js
+ HTTP  5/24/2026 10:21:52 PM ::1 Returned 304 in 1 ms
+ HTTP  5/24/2026 10:22:55 PM ::1 GET /index.html
+ HTTP  5/24/2026 10:22:55 PM ::1 Returned 301 in 1 ms
+ HTTP  5/24/2026 10:22:55 PM ::1 GET /index
+ HTTP  5/24/2026 10:22:55 PM ::1 Returned 301 in 1 ms
+ HTTP  5/24/2026 10:22:55 PM ::1 GET /
+ HTTP  5/24/2026 10:22:55 PM ::1 Returned 200 in 1 ms
+ HTTP  5/24/2026 10:22:55 PM ::1 GET /css/style.css
+ HTTP  5/24/2026 10:22:55 PM ::1 Returned 200 in 2 ms
+ HTTP  5/24/2026 10:22:55 PM ::1 GET /js/bingo-core.js
+ HTTP  5/24/2026 10:22:55 PM ::1 Returned 200 in 1 ms
+ HTTP  5/24/2026 10:22:55 PM ::1 GET /js/storage.js
+ HTTP  5/24/2026 10:22:55 PM ::1 Returned 200 in 1 ms
+ HTTP  5/24/2026 10:22:55 PM ::1 GET /js/sync.js
+ HTTP  5/24/2026 10:22:55 PM ::1 Returned 200 in 1 ms
+ HTTP  5/24/2026 10:22:55 PM ::1 GET /js/firebase-config.js
+ HTTP  5/24/2026 10:22:55 PM ::1 Returned 200 in 1 ms
+ HTTP  5/24/2026 10:22:55 PM ::1 GET /sw.js
+ HTTP  5/24/2026 10:22:55 PM ::1 Returned 200 in 1 ms
+ HTTP  5/24/2026 10:22:56 PM ::1 GET /
+ HTTP  5/24/2026 10:22:56 PM ::1 Returned 304 in 2 ms
+ HTTP  5/24/2026 10:22:56 PM ::1 GET /card.html
+ HTTP  5/24/2026 10:22:56 PM ::1 Returned 301 in 0 ms
+ HTTP  5/24/2026 10:22:56 PM ::1 GET /css/style.css
+ HTTP  5/24/2026 10:22:56 PM ::1 GET /
+ HTTP  5/24/2026 10:22:56 PM ::1 Returned 304 in 0 ms
+ HTTP  5/24/2026 10:22:56 PM ::1 GET /card
+ HTTP  5/24/2026 10:22:56 PM ::1 Returned 304 in 1 ms
+ HTTP  5/24/2026 10:22:56 PM ::1 Returned 200 in 1 ms
+ HTTP  5/24/2026 10:22:56 PM ::1 GET /js/bingo-core.js
+ HTTP  5/24/2026 10:22:56 PM ::1 GET /js/storage.js
+ HTTP  5/24/2026 10:22:56 PM ::1 GET /js/sync.js
+ HTTP  5/24/2026 10:22:56 PM ::1 Returned 304 in 1 ms
+ HTTP  5/24/2026 10:22:56 PM ::1 Returned 304 in 1 ms
+ HTTP  5/24/2026 10:22:56 PM ::1 Returned 304 in 0 ms
+ HTTP  5/24/2026 10:22:56 PM ::1 GET /js/firebase-config.js
+ HTTP  5/24/2026 10:22:56 PM ::1 GET /assets/images/daub1.png
+ HTTP  5/24/2026 10:22:56 PM ::1 GET /assets/images/icon.svg
+ HTTP  5/24/2026 10:22:56 PM ::1 Returned 304 in 1 ms
+ HTTP  5/24/2026 10:22:56 PM ::1 Returned 200 in 1 ms
+ HTTP  5/24/2026 10:22:56 PM ::1 Returned 200 in 1 ms
+ HTTP  5/24/2026 10:22:56 PM ::1 GET /manifest.json
+ HTTP  5/24/2026 10:22:56 PM ::1 Returned 200 in 1 ms
+ HTTP  5/24/2026 10:22:59 PM ::1 GET /card.html?c=eyJ0IjoiRGF5IGluIHRoZSBQYXJrIEJpbmdvIiwidyI6IkZsb3dlcnMsQmVlcyxQaWNuaWNrZXJzLEFudHMsTGl0dGxlIEtpZCBDcnlpbmcsSG9sZGluZyBIYW5kcyxQZXJzb24gTmFwcGluZyxBIEJhbGxvb24sRG9ncyxGcmlzYmVlLFN0cm9sbGVyLENoZXNzIFBsYXllcnMsUm9sbGVyc2thdGVzLE11c2ljaWFuLEp1Z2dsZXIsUGhvdG9ncmFwaGVyLFBhaW50ZXIsUGxhc3RpYyBCYWcgaW4gVHJlZSxTcXVpcnJlbCxQaWdlb24sQmljeWNsZSBCdWlsdCBmb3IgVHdvLEljZSBDcmVhbSxTdW5iYXRoZXIsUGVyc29uIFJlYWRpbmcgTmV3c3BhcGVyLFBlcnNvbiBMaXN0ZW5pbmcgdG8gUmFkaW8sU2lkZXdhbGsgQ2hhbGssSG9wc2NvdGNoIiwicyI6NSwiY3QiOiJmIiwiY3YiOiJQYXJrIEJlbmNoIiwiY3MiOiJGcmVlIFNwYWNlIiwiZnoiOiJtIiwiZW4iOmZhbHNlfQ==
+ HTTP  5/24/2026 10:22:59 PM ::1 Returned 301 in 1 ms
+ HTTP  5/24/2026 10:22:59 PM ::1 GET /card
+ HTTP  5/24/2026 10:22:59 PM ::1 Returned 304 in 1 ms
+ HTTP  5/24/2026 10:22:59 PM ::1 GET /css/style.css
+ HTTP  5/24/2026 10:22:59 PM ::1 Returned 304 in 1 ms
+ HTTP  5/24/2026 10:22:59 PM ::1 GET /js/bingo-core.js
+ HTTP  5/24/2026 10:22:59 PM ::1 Returned 304 in 3 ms
+ HTTP  5/24/2026 10:22:59 PM ::1 GET /js/storage.js
+ HTTP  5/24/2026 10:22:59 PM ::1 GET /js/sync.js
+ HTTP  5/24/2026 10:22:59 PM ::1 Returned 304 in 7 ms
+ HTTP  5/24/2026 10:22:59 PM ::1 Returned 304 in 1 ms
+ HTTP  5/24/2026 10:22:59 PM ::1 GET /js/firebase-config.js
+ HTTP  5/24/2026 10:22:59 PM ::1 Returned 304 in 1 ms
+ HTTP  5/24/2026 10:22:59 PM ::1 GET /assets/images/daub1.png
+ HTTP  5/24/2026 10:22:59 PM ::1 Returned 304 in 1 ms
+ HTTP  5/24/2026 10:23:01 PM ::1 GET /sw.js
+ HTTP  5/24/2026 10:23:01 PM ::1 Returned 304 in 2 ms
