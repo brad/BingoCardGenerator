@@ -19,6 +19,12 @@ export const sync = {
         return !docSnap.exists();
     },
 
+    async isRoomIdAvailable(roomId) {
+        const roomRef = doc(db, 'rooms', roomId);
+        const docSnap = await getDoc(roomRef);
+        return !docSnap.exists();
+    },
+
     async getPlayerCount(roomId) {
         const playersCol = collection(db, 'rooms', roomId, 'players');
         const snapshot = await getCountFromServer(playersCol);

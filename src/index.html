@@ -106,7 +106,17 @@
 
         document.getElementById('generate-link').addEventListener('click', async () => {
             const config = getConfig();
-            const roomId = bingoCore.generateRoomId();
+            let roomId = bingoCore.generateRoomId();
+            let isAvailable = false;
+            let attempts = 0;
+
+            while (!isAvailable && attempts < 5) {
+                isAvailable = await sync.isRoomIdAvailable(roomId);
+                if (!isAvailable) {
+                    roomId = bingoCore.generateRoomId();
+                    attempts++;
+                }
+            }
 
             try {
                 await sync.saveRoomConfig(roomId, config);
