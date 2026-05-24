@@ -2,10 +2,6 @@ from playwright.sync_api import sync_playwright
 import os
 
 def run_cuj(page):
-    # Using the re-encoded config
-    config_url = "http://localhost:3000/card?c=eyJ0IjogIkRheSBpbiB0aGUgUGFyayBCaW5nbyIsICJ3IjogIkZsb3dlcnMsQmVlcyxQaWNuaWNrZXJzLEFudHMsTGl0dGxlIEtpZCBDcnlpbmcsSG9sZGluZyBIYW5kcyxQZXJzb24gTmFwcGluZyxBIEJhbGxvb24sRG9ncyxGcmlzYmVlLFN0cm9sbGVyLENoZXNzIFBsYXllcnMsUm9sbGVyc2thdGVzLE11c2ljaWFuLEp1Z2dsZXIsUGhvdG9ncmFwaGVyLFBhaW50ZXIsUGxhc3RpYyBCYWcgaW4gVHJlZSxTcXVpcnJlbCxQaWdlb24sQmljeWNsZSBCdWlsdCBmb3IgVHdvLEljZSBDcmVhbSxTdW5iYXRoZXIsUGVyc29uIFJlYWRpbmcgTmV3c3BhcGVyLFBlcnNvbiBMaXN0ZW5pbmcgdG8gUmFkaW8sU2lkZXdhbGsgQ2hhbGssSG9wc2NvdGNoIiwid2kiOjUsImgiOjUsImN0IjoiZiIsImN2IjoiUGFyayBCZW5jaCIsImNzIjoiRnJlZSBTcGFjZSIsImZzIjoibSIsImVuIjp0cnVlfQ=="
-
-    # Actually wait, I used the old one again. Let's use the new one.
     config_url = "http://localhost:3000/card?c=eyJ0IjogIkRheSBpbiB0aGUgUGFyayBCaW5nbyIsICJ3IjogIkZsb3dlcnMsQmVlcyxQaWNuaWNrZXJzLEFudHMsTGl0dGxlIEtpZCBDcnlpbmcsSG9sZGluZyBIYW5kcyxQZXJzb24gTmFwcGluZyxBIEJhbGxvb24sRG9ncyxGcmlzYmVlLFN0cm9sbGVyLENoZXNzIFBsYXllcnMsUm9sbGVyc2thdGVzLE11c2ljaWFuLEp1Z2dsZXIsUGhvdG9ncmFwaGVyLFBhaW50ZXIsUGxhc3RpYyBCYWcgaW4gVHJlZSxTcXVpcnJlbCxQaWdlb24sQmljeWNsZSBCdWlsdCBmb3IgVHdvLEljZSBDcmVhbSxTdW5iYXRoZXIsUGVyc29uIFJlYWRpbmcgTmV3c3BhcGVyLFBlcnNvbiBMaXN0ZW5pbmcgdG8gUmFkaW8sU2lkZXdhbGsgQ2hhbGssSG9wc2NvdGNoIiwgInMiOiA1LCAiY3QiOiAiZiIsICJjdiI6ICJQYXJrIEJlbmNoIiwgImNzIjogIkZyZWUgU3BhY2UiLCAiZnoiOiAibSIsICJlbiI6IHRydWV9"
 
     page.on("console", lambda msg: print(f"CONSOLE: {msg.text}"))
@@ -20,37 +16,46 @@ def run_cuj(page):
     if nickname_input.is_visible():
         print("Nickname modal visible. Entering nickname...")
         nickname_input.fill("Tester")
-        page.wait_for_timeout(500)
         page.get_by_role("button", name="Join Game").click()
-        page.wait_for_timeout(1000)
+        page.wait_for_timeout(2000)
 
     # Verify card is rendered
     cells = page.locator(".bingo-cell")
     count = cells.count()
     print(f"Found {count} cells.")
 
-    # Test Note Feature
-    print("Testing note feature...")
-    first_cell = cells.nth(0)
-    print(f"Clicking cell 0...")
-    first_cell.click()
-    page.wait_for_timeout(1000)
+    # Test Long Press via event dispatch
+    print("Testing long press via event dispatch...")
+    # Cell 1 is not a free space
+    cell = cells.nth(1)
+    cell.dispatch_event("pointerdown")
+    page.wait_for_timeout(700)
+    cell.dispatch_event("pointerup")
 
+    page.wait_for_timeout(1000)
     note_modal = page.locator("#note-modal")
     if note_modal.is_visible():
-        print("Note modal opened automatically.")
-        page.locator("#note-text").fill("This is a test note.")
-        page.wait_for_timeout(500)
-        page.get_by_role("button", name="Save Note").click()
+        print("SUCCESS: Note modal opened via long press.")
+        page.get_by_role("button", name="Cancel").click()
         page.wait_for_timeout(1000)
-        print("Note saved.")
     else:
-        print("Note modal did NOT open automatically.")
+        print("FAILURE: Note modal did NOT open via long press.")
+
+    # Test Free Space (index 12)
+    print("Testing free space long press...")
+    free_cell = cells.nth(12)
+    free_cell.dispatch_event("pointerdown")
+    page.wait_for_timeout(700)
+    free_cell.dispatch_event("pointerup")
+    page.wait_for_timeout(1000)
+    if note_modal.is_visible():
+        print("FAILURE: Note modal opened for free space.")
+    else:
+        print("SUCCESS: Note modal did NOT open for free space.")
 
     # Take screenshot
     page.screenshot(path="verification-screenshot.png")
     print("Screenshot saved as verification-screenshot.png")
-    page.wait_for_timeout(1000)
 
 if __name__ == "__main__":
     with sync_playwright() as p:
