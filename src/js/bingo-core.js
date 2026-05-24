@@ -53,6 +53,7 @@ export const bingoCore = {
                     isFreeSpace: centerType === 'f',
                     marked: centerType === 'f',
                     note: "",
+                    photo: "",
                     wasEverDaubed: centerType === 'f',
                 });
             } else {
@@ -63,6 +64,7 @@ export const bingoCore = {
                     isFreeSpace: false,
                     marked: false,
                     note: "",
+                    photo: "",
                     wasEverDaubed: false
                 });
             }

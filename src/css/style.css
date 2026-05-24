@@ -370,3 +370,56 @@ dialog::backdrop {
 .modal-buttons .cancel-btn:hover {
     background-color: #bbb;
 }
+
+#note-photo-preview-container {
+    position: relative;
+    width: 100%;
+    margin-top: 10px;
+    border-radius: 4px;
+    overflow: hidden;
+    background: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100px;
+}
+
+#note-photo-preview {
+    max-width: 100%;
+    max-height: 200px;
+    display: block;
+}
+
+#remove-photo-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    padding: 0;
+}
+
+#remove-photo-btn:hover {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+#add-photo-btn {
+    background-color: #eee;
+    color: #333;
+    border: 1px solid #ccc;
+    padding: 8px;
+    font-size: 14px;
+}
+
+#add-photo-btn:hover {
+    background-color: #ddd;
+}

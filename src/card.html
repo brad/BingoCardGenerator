@@ -42,6 +42,12 @@
         <div class="modal-content">
             <h3 id="modal-title">Square Note</h3>
             <textarea id="note-text" placeholder="Enter your note here..."></textarea>
+            <input type="file" id="note-photo-input" accept="image/*" style="display: none;">
+            <div id="note-photo-preview-container" style="display: none;">
+                <img id="note-photo-preview" src="" alt="Note photo">
+                <button type="button" id="remove-photo-btn">&times;</button>
+            </div>
+            <button type="button" id="add-photo-btn">Add Photo</button>
             <div class="modal-buttons">
                 <button type="button" class="cancel-btn" id="close-modal">Cancel</button>
                 <button type="button" id="save-note">Save Note</button>
@@ -67,6 +73,12 @@
         const noteModal = document.getElementById('note-modal');
         const noteTextarea = document.getElementById('note-text');
         const saveNoteBtn = document.getElementById('save-note');
+        const notePhotoInput = document.getElementById("note-photo-input");
+        const addPhotoBtn = document.getElementById("add-photo-btn");
+        const removePhotoBtn = document.getElementById("remove-photo-btn");
+        const photoPreviewContainer = document.getElementById("note-photo-preview-container");
+        const photoPreviewImg = document.getElementById("note-photo-preview");
+        let currentPhotoBase64 = "";
         const closeModalBtn = document.getElementById('close-modal');
         const modalTitle = document.getElementById('modal-title');
 
@@ -192,13 +204,49 @@
             currentSpaceIndex = index;
             const space = myCardData.spaces[index];
             modalTitle.textContent = `Note for "${space.text}"`;
+            currentPhotoBase64 = space.photo || "";
+            if (currentPhotoBase64) {
+                photoPreviewImg.src = currentPhotoBase64;
+                photoPreviewContainer.style.display = "flex";
+                addPhotoBtn.style.display = "none";
+            } else {
+                photoPreviewImg.src = "";
+                photoPreviewContainer.style.display = "none";
+                addPhotoBtn.style.display = "block";
+            }
             noteTextarea.value = space.note || "";
             noteModal.showModal();
         }
 
+        addPhotoBtn.addEventListener("click", () => {
+            notePhotoInput.click();
+        });
+
+        notePhotoInput.addEventListener("change", (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    currentPhotoBase64 = event.target.result;
+                    photoPreviewImg.src = currentPhotoBase64;
+                    photoPreviewContainer.style.display = "flex";
+                    addPhotoBtn.style.display = "none";
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        removePhotoBtn.addEventListener("click", () => {
+            currentPhotoBase64 = "";
+            photoPreviewImg.src = "";
+            photoPreviewContainer.style.display = "none";
+            addPhotoBtn.style.display = "block";
+            notePhotoInput.value = "";
+        });
         saveNoteBtn.addEventListener('click', () => {
             if (currentSpaceIndex !== -1) {
                 myCardData.spaces[currentSpaceIndex].note = noteTextarea.value;
+                myCardData.spaces[currentSpaceIndex].photo = currentPhotoBase64;
                 bingoStorage.saveCard(myCardData);
                 sync.updateCard(myCardData.roomId, userInfo.id, myCardData);
                 noteModal.close();
@@ -260,7 +308,7 @@
                         cell.classList.toggle('marked');
 
                         if (!wasMarked) { // If we just daubed it
-                            if (data.enableNotes && !space.isFreeSpace && !space.wasEverDaubed) {
+                            if (data.enableNotes && !space.isFreeSpace) {
                                 space.wasEverDaubed = true;
                                 openNoteModal(index);
                             }
