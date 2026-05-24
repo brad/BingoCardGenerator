@@ -10,7 +10,7 @@
     <meta name="theme-color" content="#4a90e2">
 </head>
 <body class="standalone-body">
-        <header class="bingo-header">
+    <header class="bingo-header">
         <h1 id="card-title">Bingo Card</h1>
         <button id="help-btn" aria-label="Help">?</button>
     </header>
@@ -59,7 +59,7 @@
         <img id="fullscreen-photo" src="" alt="Fullscreen photo">
     </dialog>
 
-  <dialog id="note-modal">
+    <dialog id="note-modal">
         <div class="modal-content">
             <h3 id="modal-title">Square Note</h3>
             <textarea id="note-text" placeholder="Enter your note here..."></textarea>
@@ -82,7 +82,7 @@
         import { storage as bingoStorage } from './js/storage.js';
         import { sync } from './js/sync.js';
 
-                const helpBtn = document.getElementById("help-btn");
+        const helpBtn = document.getElementById("help-btn");
         const helpModal = document.getElementById("help-modal");
         const closeHelpBtn = document.getElementById("close-help");
         const gridElement = document.getElementById('bingo-grid');
@@ -113,43 +113,51 @@
         let otherPlayers = [];
         let currentIndex = -1; // -1 means "Me"
         let userInfo = bingoStorage.getUserInfo();
+        let isStandalone = false;
 
         let currentSpaceIndex = -1;
 
 
         async function init() {
-            // Priority 1: New config in URL
-            const search = window.location.search;
-            if (search && search.includes('c=')) {
-                const config = bingoCore.decodeConfig(search);
-                if (config && config.words) {
-                    myCardData = bingoCore.generateCardData(config, config.raw);
-                    bingoStorage.saveCard(myCardData);
-                    window.history.replaceState({}, document.title, window.location.pathname);
-                }
-            }
+            const params = new URLSearchParams(window.location.search);
+            const roomIdParam = params.get('room');
+            const configParam = params.get('c');
 
-            if (!myCardData) {
+            if (roomIdParam) {
+                try {
+                    const config = await sync.getRoomConfig(roomIdParam);
+                    if (config) {
+                        myCardData = bingoCore.generateCardData(config, roomIdParam);
+                        bingoStorage.saveCard(myCardData);
+                        renderCard(myCardData);
+                        setupMultiplayer();
+                    } else {
+                        alert("This room does not exist or has expired.");
+                        window.location.href = 'index.html';
+                    }
+                } catch (e) {
+                    console.error("Error fetching room config:", e);
+                    alert("Failed to join room. Returning to home.");
+                    window.location.href = 'index.html';
+                }
+            } else if (configParam) {
+                isStandalone = true;
+                const config = bingoCore.decodeConfig(window.location.search);
+                myCardData = bingoCore.generateCardData(config, 'standalone');
+                document.querySelector('.multiplayer-footer').style.display = 'none';
+                renderCard(myCardData);
+            } else {
                 myCardData = bingoStorage.loadCard();
-            }
-
-            if (!myCardData) {
-                myCardData = bingoCore.generateCardData(bingoCore.DEFAULT_CONFIG, 'default');
-                bingoStorage.saveCard(myCardData);
-            }
-
-            // Ensure roomId is sanitized (for migration)
-            if (myCardData && myCardData.roomId) {
-                const sanitized = bingoCore.sanitizeRoomId(myCardData.roomId);
-                if (sanitized !== myCardData.roomId) {
-                    myCardData.roomId = sanitized;
+                if (!myCardData) {
+                    myCardData = bingoCore.generateCardData(bingoCore.DEFAULT_CONFIG, 'default');
                     bingoStorage.saveCard(myCardData);
                 }
+                renderCard(myCardData);
+                setupMultiplayer();
             }
+        }
 
-            renderCard(myCardData);
-
-            // Setup Multi-player
+        async function setupMultiplayer() {
             if (!userInfo.nickname) {
                 try {
                     const count = await sync.getPlayerCount(myCardData.roomId);
@@ -179,7 +187,6 @@
                     nicknameError.textContent = 'Nickname already taken. Please choose another.';
                 } else {
                     console.error("Join room failed:", e);
-                    // Still update navigation even if sync fails so UI doesn't hang
                     updateNavigation();
                 }
             }
@@ -202,7 +209,6 @@
                     }
                 } catch (err) {
                     console.error("Firebase might not be configured:", err);
-                    // If Firebase is not configured, we still want the UI to work locally
                     userInfo.nickname = nick;
                     bingoStorage.setUserInfo(userInfo);
                     nicknameModal.close();
@@ -212,6 +218,7 @@
         });
 
         function updateNavigation() {
+            if (isStandalone) return;
             const total = otherPlayers.length + 1;
             const displayIndex = currentIndex === -1 ? 1 : currentIndex + 2;
 
@@ -276,12 +283,15 @@
             addPhotoBtn.style.display = "block";
             notePhotoInput.value = "";
         });
+
         saveNoteBtn.addEventListener('click', () => {
             if (currentSpaceIndex !== -1) {
                 myCardData.spaces[currentSpaceIndex].note = noteTextarea.value;
                 myCardData.spaces[currentSpaceIndex].photo = currentPhotoBase64;
-                bingoStorage.saveCard(myCardData);
-                sync.updateCard(myCardData.roomId, userInfo.id, myCardData);
+                if (!isStandalone) {
+                    bingoStorage.saveCard(myCardData);
+                    sync.updateCard(myCardData.roomId, userInfo.id, myCardData);
+                }
                 noteModal.close();
             }
         });
@@ -350,7 +360,7 @@
                     space.marked = !wasMarked;
                     cell.classList.toggle("marked");
 
-                    if (!wasMarked) { // If we just daubed it
+                    if (!wasMarked) {
                         if (data.enableNotes && !space.isFreeSpace) {
                             space.wasEverDaubed = true;
                             openNoteModal(index);
@@ -358,8 +368,10 @@
                         space.wasEverDaubed = true;
                     }
 
-                    bingoStorage.saveCard(myCardData);
-                    sync.updateCard(myCardData.roomId, userInfo.id, myCardData);
+                    if (!isStandalone) {
+                        bingoStorage.saveCard(myCardData);
+                        sync.updateCard(myCardData.roomId, userInfo.id, myCardData);
+                    }
                 });
                 gridElement.appendChild(cell);
             });
@@ -379,7 +391,6 @@
                 const opposite = direction === 'slide-left' ? 'slide-right' : 'slide-left';
                 gridElement.classList.add(opposite);
 
-                // Force reflow
                 gridElement.offsetHeight;
 
                 gridElement.classList.remove(opposite);
