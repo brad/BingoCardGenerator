@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bingo-v2';
+const CACHE_NAME = 'bingo-v3';
 const ASSETS = [
   'card.html',
   'css/style.css',
@@ -18,6 +18,7 @@ const FIREBASE_SDK = [
 ];
 
 self.addEventListener('install', (event) => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       cache.addAll(FIREBASE_SDK);
@@ -36,6 +37,8 @@ self.addEventListener('activate', (event) => {
           }
         })
       );
+    }).then(() => {
+      return self.clients.claim();
     })
   );
 });
