@@ -10,7 +10,10 @@
     <meta name="theme-color" content="#4a90e2">
 </head>
 <body class="standalone-body">
-    <h1 id="card-title" class="bingo-header">Bingo Card</h1>
+        <header class="bingo-header">
+        <h1 id="card-title">Bingo Card</h1>
+        <button id="help-btn" aria-label="Help">?</button>
+    </header>
     <div class="bingo-container">
         <div class="card-transition-container">
             <div id="bingo-grid" class="bingo-grid"></div>
@@ -37,6 +40,24 @@
             </div>
         </div>
     </dialog>
+    <dialog id="help-modal">
+        <div class="modal-content">
+            <h3>How to Play</h3>
+            <ul style="text-align: left; padding-left: 20px; margin: 0;">
+                <li><strong>Mark:</strong> Tap a square to mark/unmark it.</li>
+                <li><strong>Notes:</strong> Long-press a square to add/view notes and photos.</li>
+                <li><strong>Multiplayer:</strong> Use the arrows at the bottom to view other players cards.</li>
+                <li><strong>Full Screen:</strong> Tap a photo preview in the note to see it full screen.</li>
+            </ul>
+            <div class="modal-buttons">
+                <button id="close-help">Got it!</button>
+            </div>
+        </div>
+    </dialog>
+
+    <dialog id="photo-fullscreen-modal" class="fullscreen-photo-modal">
+        <img id="fullscreen-photo" src="" alt="Fullscreen photo">
+    </dialog>
 
   <dialog id="note-modal">
         <div class="modal-content">
@@ -55,11 +76,15 @@
         </div>
     </dialog>
 
+
     <script type="module">
         import { bingoCore } from './js/bingo-core.js';
         import { storage as bingoStorage } from './js/storage.js';
         import { sync } from './js/sync.js';
 
+                const helpBtn = document.getElementById("help-btn");
+        const helpModal = document.getElementById("help-modal");
+        const closeHelpBtn = document.getElementById("close-help");
         const gridElement = document.getElementById('bingo-grid');
         const titleElement = document.getElementById('card-title');
         const nicknameModal = document.getElementById('nickname-modal');
@@ -81,6 +106,8 @@
         let currentPhotoBase64 = "";
         const closeModalBtn = document.getElementById('close-modal');
         const modalTitle = document.getElementById('modal-title');
+        const photoFullscreenModal = document.getElementById("photo-fullscreen-modal");
+        const fullscreenPhotoImg = document.getElementById("fullscreen-photo");
 
         let myCardData = null;
         let otherPlayers = [];
@@ -200,21 +227,27 @@
             nextBtn.disabled = currentIndex >= otherPlayers.length - 1;
         }
       
-        function openNoteModal(index) {
+        function openNoteModal(index, isReadOnly = false, data = myCardData) {
             currentSpaceIndex = index;
-            const space = myCardData.spaces[index];
+            const space = data.spaces[index];
             modalTitle.textContent = `Note for "${space.text}"`;
             currentPhotoBase64 = space.photo || "";
+
             if (currentPhotoBase64) {
                 photoPreviewImg.src = currentPhotoBase64;
                 photoPreviewContainer.style.display = "flex";
                 addPhotoBtn.style.display = "none";
+                removePhotoBtn.style.display = isReadOnly ? "none" : "flex";
             } else {
                 photoPreviewImg.src = "";
                 photoPreviewContainer.style.display = "none";
-                addPhotoBtn.style.display = "block";
+                addPhotoBtn.style.display = isReadOnly ? "none" : "block";
             }
+
             noteTextarea.value = space.note || "";
+            noteTextarea.readOnly = isReadOnly;
+            saveNoteBtn.style.display = isReadOnly ? "none" : "inline-block";
+
             noteModal.showModal();
         }
 
@@ -257,6 +290,17 @@
             noteModal.close();
         });
 
+        photoPreviewImg.addEventListener("click", () => {
+            if (currentPhotoBase64) {
+                fullscreenPhotoImg.src = currentPhotoBase64;
+                photoFullscreenModal.showModal();
+            }
+        });
+
+        photoFullscreenModal.addEventListener("click", () => {
+            photoFullscreenModal.close();
+        });
+
         function renderCard(data, isReadOnly = false) {
             titleElement.textContent = data.title;
             document.body.className = `standalone-body font-${data.fontSize || 'm'}`;
@@ -277,50 +321,46 @@
                     sub.textContent = space.subheading;
                     cell.appendChild(sub);
                 }
-                if (!isReadOnly) {
-                    let pressTimer;
-                    let isLongPress = false;
+                let pressTimer;
+                let isLongPress = false;
 
-                    const startPress = () => {
-                        isLongPress = false;
+                const startPress = () => {
+                    isLongPress = false;
+                    if (data.enableNotes && !space.isFreeSpace) {
+                        pressTimer = setTimeout(() => {
+                            isLongPress = true;
+                            openNoteModal(index, isReadOnly, data);
+                        }, 500);
+                    }
+                };
+
+                const cancelPress = () => {
+                    clearTimeout(pressTimer);
+                };
+
+                cell.addEventListener("pointerdown", startPress);
+                cell.addEventListener("pointerup", cancelPress);
+                cell.addEventListener("pointermove", cancelPress);
+                cell.addEventListener("pointercancel", cancelPress);
+
+                cell.addEventListener("click", () => {
+                    if (isLongPress) return;
+                    if (isReadOnly) return;
+                    const wasMarked = space.marked;
+                    space.marked = !wasMarked;
+                    cell.classList.toggle("marked");
+
+                    if (!wasMarked) { // If we just daubed it
                         if (data.enableNotes && !space.isFreeSpace) {
-                            pressTimer = setTimeout(() => {
-                                isLongPress = true;
-                                openNoteModal(index);
-                            }, 500);
-                        }
-                    };
-
-                    const cancelPress = () => {
-                        clearTimeout(pressTimer);
-                    };
-
-                    cell.addEventListener('pointerdown', startPress);
-                    cell.addEventListener('pointerup', cancelPress);
-                    cell.addEventListener('pointermove', cancelPress);
-                    cell.addEventListener('pointercancel', cancelPress);
-
-                    cell.addEventListener('click', () => {
-                        if (isLongPress) return;
-
-                        const wasMarked = space.marked;
-                        space.marked = !wasMarked;
-                        cell.classList.toggle('marked');
-
-                        if (!wasMarked) { // If we just daubed it
-                            if (data.enableNotes && !space.isFreeSpace) {
-                                space.wasEverDaubed = true;
-                                openNoteModal(index);
-                            }
                             space.wasEverDaubed = true;
+                            openNoteModal(index);
                         }
+                        space.wasEverDaubed = true;
+                    }
 
-                        bingoStorage.saveCard(myCardData);
-                        sync.updateCard(myCardData.roomId, userInfo.id, myCardData);
-                    });
-                }
-
-                gridElement.appendChild(cell);
+                    bingoStorage.saveCard(myCardData);
+                    sync.updateCard(myCardData.roomId, userInfo.id, myCardData);
+                });
             });
             updateNavigation();
         }
@@ -353,6 +393,9 @@
             if (currentIndex < otherPlayers.length - 1) switchPlayer(currentIndex + 1);
         });
 
+
+        helpBtn.addEventListener("click", () => helpModal.showModal());
+        closeHelpBtn.addEventListener("click", () => helpModal.close());
         init();
 
         if ('serviceWorker' in navigator) {
