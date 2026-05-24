@@ -77,7 +77,6 @@
 
         let currentSpaceIndex = -1;
 
-        const PENCIL_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>`;
 
         async function init() {
             // Priority 1: New config in URL
@@ -230,27 +229,37 @@
                     sub.textContent = space.subheading;
                     cell.appendChild(sub);
                 }
-
-                if (data.enableNotes) {
-                    const noteIcon = document.createElement('div');
-                    noteIcon.className = 'note-icon';
-                    noteIcon.innerHTML = PENCIL_SVG;
-                    noteIcon.addEventListener('click', (e) => {
-                        e.stopPropagation(); // Don't trigger the daub
-                        openNoteModal(index);
-                    });
-                    cell.appendChild(noteIcon);
-                }
-
                 if (!isReadOnly) {
+                    let pressTimer;
+                    let isLongPress = false;
+
+                    const startPress = () => {
+                        isLongPress = false;
+                        if (data.enableNotes && !space.isFreeSpace) {
+                            pressTimer = setTimeout(() => {
+                                isLongPress = true;
+                                openNoteModal(index);
+                            }, 500);
+                        }
+                    };
+
+                    const cancelPress = () => {
+                        clearTimeout(pressTimer);
+                    };
+
+                    cell.addEventListener('pointerdown', startPress);
+                    cell.addEventListener('pointerup', cancelPress);
+                    cell.addEventListener('pointermove', cancelPress);
+                    cell.addEventListener('pointercancel', cancelPress);
+
                     cell.addEventListener('click', () => {
+                        if (isLongPress) return;
 
                         const wasMarked = space.marked;
                         space.marked = !wasMarked;
                         cell.classList.toggle('marked');
 
                         if (!wasMarked) { // If we just daubed it
-
                             if (data.enableNotes && !space.isFreeSpace && !space.wasEverDaubed) {
                                 space.wasEverDaubed = true;
                                 openNoteModal(index);
@@ -262,6 +271,7 @@
                         sync.updateCard(myCardData.roomId, userInfo.id, myCardData);
                     });
                 }
+
                 gridElement.appendChild(cell);
             });
             updateNavigation();
