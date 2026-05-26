@@ -2,3 +2,5 @@ node_modules/
 server.log
 test-results/
 verification-screenshot.png
+serve.log
+verification/

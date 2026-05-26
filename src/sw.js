@@ -1,5 +1,7 @@
-const CACHE_NAME = 'bingo-v3';
+const CACHE_NAME = 'bingo-VERSION_PLACEHOLDER';
 const ASSETS = [
+  './',
+  'index.html',
   'card.html',
   'css/style.css',
   'js/bingo-core.js',
@@ -11,7 +13,6 @@ const ASSETS = [
   'manifest.json'
 ];
 
-// Firebase SDK URLs to cache
 const FIREBASE_SDK = [
   'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js',
   'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js'
@@ -44,18 +45,29 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-    // For card.html and Firebase SDKs, try Network-First to get latest state/SDK
-    // but fall back to cache for offline support.
-    if (event.request.url.includes('card.html') || event.request.url.includes('gstatic.com')) {
-        event.respondWith(
-            fetch(event.request).catch(() => caches.match(event.request))
-        );
-        return;
-    }
+  const url = new URL(event.request.url);
+  const isLocal = url.origin === self.location.origin;
+  const isFirebase = url.hostname === 'www.gstatic.com';
 
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
-    })
-  );
+  if (isLocal || isFirebase) {
+    // Network-First strategy for local assets and Firebase SDKs
+    // To ensure we always get the latest when online, but have offline fallback
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          // Update the cache with the new version
+          if (response.ok) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          }
+          return response;
+        })
+        .catch(() => caches.match(event.request))
+    );
+  } else {
+    // Default strategy for other requests
+    event.respondWith(
+      caches.match(event.request).then((response) => response || fetch(event.request))
+    );
+  }
 });
