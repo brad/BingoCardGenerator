@@ -10,6 +10,7 @@ const ASSETS = [
   'js/firebase-config.js',
   'assets/images/daub1.png',
   'assets/images/icon.svg',
+  'assets/images/icon-maskable.svg',
   'manifest.json'
 ];
 
