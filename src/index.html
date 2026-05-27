@@ -8,6 +8,10 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <div class="loading-text">Loading...</div>
+    </div>
     <h1>Bingo Card Generator</h1>
     <form id="generator-form">
         <fieldset>
@@ -75,6 +79,7 @@
         <div class="button-group">
             <button type="button" id="generate-local">Open standalone card</button>
             <button type="button" id="generate-link">Copy shareable link</button>
+            <button type="button" id="reset-form" style="background-color: #666;">Reset to Defaults</button>
         </div>
 
     <div id="preview-section" style="margin-top: 20px; text-align: center;">
@@ -94,68 +99,70 @@
     </div>
 
     <script type="module">
-        import { bingoCore } from './js/bingo-core.js';
-        import { storage } from './js/storage.js';
-        import { sync } from './js/sync.js';
+        import { bingoCore } from "./js/bingo-core.js";
+        import { storage, formStorage } from "./js/storage.js";
+        import { sync } from "./js/sync.js";
 
-        const form = document.getElementById('generator-form');
-        const centerType = document.getElementById('centerType');
-        const centerManualOptions = document.getElementById('center-manual-options');
+        const form = document.getElementById("generator-form");
+        const centerType = document.getElementById("centerType");
+        const centerManualOptions = document.getElementById("center-manual-options");
 
-        const themeSelect = document.getElementById('theme');
-        const fontSelect = document.getElementById('fontFamily');
+        const themeSelect = document.getElementById("theme");
+        const fontSelect = document.getElementById("fontFamily");
 
-        themeSelect.addEventListener('change', () => {
+        themeSelect.addEventListener("change", () => {
             document.body.dataset.theme = themeSelect.value;
         });
 
-        fontSelect.addEventListener('change', () => {
+        fontSelect.addEventListener("change", () => {
             document.body.dataset.font = fontSelect.value;
         });
 
-        const fontSizeSelect = document.getElementById('fontSize');
-        fontSizeSelect.addEventListener('change', () => {
-            const previewCell = document.getElementById('preview-cell');
-            previewCell.className = 'bingo-cell font-' + fontSizeSelect.value;
+        const fontSizeSelect = document.getElementById("fontSize");
+        fontSizeSelect.addEventListener("change", () => {
+            const previewCell = document.getElementById("preview-cell");
+            previewCell.className = "bingo-cell font-" + fontSizeSelect.value;
         });
         // Initial state
-        document.getElementById('preview-cell').className = 'bingo-cell font-' + fontSizeSelect.value;
+        document.getElementById("preview-cell").className = "bingo-cell font-" + fontSizeSelect.value;
 
 
 
-        centerType.addEventListener('change', () => {
-            if (centerType.value === 'r') {
-                centerManualOptions.style.display = 'none';
+        centerType.addEventListener("change", () => {
+            if (centerType.value === "r") {
+                centerManualOptions.style.display = "none";
             } else {
-                centerManualOptions.style.display = 'block';
+                centerManualOptions.style.display = "block";
             }
         });
 
         function getConfig() {
             const formData = new FormData(form);
-            const size = parseInt(formData.get('gridSize'));
+            const size = parseInt(formData.get("gridSize"));
             return {
-                title: formData.get('title'),
-                words: document.getElementById('id-words').value,
+                title: formData.get("title"),
+                words: document.getElementById("id-words").value,
                 width: size,
                 height: size,
-                centerType: formData.get('centerType'),
-                centerValue: formData.get('centerValue'),
-                centerSubheadingValue: formData.get('centerSubheadingValue'),
-                fontSize: formData.get('fontSize'),
-                theme: formData.get('theme'),
-                fontFamily: formData.get('fontFamily'),
-                enableNotes: formData.get('enableNotes') === 'on'
+                centerType: formData.get("centerType"),
+                centerValue: formData.get("centerValue"),
+                centerSubheadingValue: formData.get("centerSubheadingValue"),
+                fontSize: formData.get("fontSize"),
+                theme: formData.get("theme"),
+                fontFamily: formData.get("fontFamily"),
+                enableNotes: formData.get("enableNotes") === "on"
             };
         }
 
-        document.getElementById('generate-local').addEventListener('click', () => {
+        document.getElementById("generate-local").addEventListener("click", () => {
             const config = getConfig();
             const queryString = bingoCore.encodeConfig(config);
-            window.location.href = 'card.html?' + queryString;
+            window.location.href = "card.html?" + queryString;
         });
 
-        document.getElementById('generate-link').addEventListener('click', async () => {
+        document.getElementById("generate-link").addEventListener("click", async () => {
+            const loadingOverlay = document.getElementById("loading-overlay");
+            loadingOverlay.classList.add("visible");
             const config = getConfig();
             let roomId = bingoCore.generateRoomId();
             let isAvailable = false;
@@ -171,29 +178,68 @@
 
             try {
                 await sync.saveRoomConfig(roomId, config);
-                const baseUrl = window.location.href.split('index.html')[0].split('?')[0].replace(/\/$/, '');
-                const url = baseUrl + '/card.html?room=' + roomId;
+                const baseUrl = window.location.href.split("index.html")[0].split("?")[0].replace(/\/$/, "");
+                const url = baseUrl + "/card.html?room=" + roomId;
 
-                const linkDisplay = document.getElementById('link-display');
-                const linkText = document.getElementById('link-text');
+                const linkDisplay = document.getElementById("link-display");
+                const linkText = document.getElementById("link-text");
                 linkText.textContent = url;
-                linkDisplay.style.display = 'block';
+                linkDisplay.style.display = "block";
 
                 navigator.clipboard.writeText(url).then(() => {
-                    alert('Link copied to clipboard!');
+                    alert("Link copied to clipboard!");
                 }).catch(err => {
-                    console.error('Failed to copy: ', err);
+                    console.error("Failed to copy: ", err);
                 });
             } catch (err) {
-                console.error('Failed to save room config: ', err);
-                alert('Failed to generate link. Please try again.');
+                console.error("Failed to save room config: ", err);
+                alert("Failed to generate link. Please try again.");
+            } finally {
+                loadingOverlay.classList.remove("visible");
             }
         });
 
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js').catch(err => {
-                    console.log('SW registration failed: ', err);
+
+        // Persistence logic
+        const inputs = form.querySelectorAll("input, textarea, select");
+        inputs.forEach(input => {
+            input.addEventListener("input", () => {
+                const config = getConfig();
+                formStorage.save(config);
+            });
+        });
+
+        document.getElementById("reset-form").addEventListener("click", () => {
+            if (confirm("Reset form to defaults?")) {
+                formStorage.clear();
+                window.location.reload();
+            }
+        });
+
+        // Load saved data
+        const saved = formStorage.load();
+        if (saved) {
+            Object.keys(saved).forEach(key => {
+                const input = form.elements[key];
+                if (input) {
+                    if (input.type === "checkbox") {
+                        input.checked = saved[key];
+                    } else {
+                        input.value = saved[key];
+                    }
+                }
+            });
+            // Update UI
+            centerType.dispatchEvent(new Event("change"));
+            themeSelect.dispatchEvent(new Event("change"));
+            fontSelect.dispatchEvent(new Event("change"));
+            fontSizeSelect.dispatchEvent(new Event("change"));
+        }
+
+        if ("serviceWorker" in navigator) {
+            window.addEventListener("load", () => {
+                navigator.serviceWorker.register("sw.js").catch(err => {
+                    console.log("SW registration failed: ", err);
                 });
             });
         }

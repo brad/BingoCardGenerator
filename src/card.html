@@ -10,6 +10,11 @@
     <meta name="theme-color" content="#4a90e2">
 </head>
 <body class="standalone-body">
+    <div class="toast-container"><div id="toast" class="toast"></div></div>
+    <div id="loading-overlay" class="loading-overlay visible">
+        <div class="spinner"></div>
+        <div class="loading-text">Loading your card...</div>
+    </div>
     <header class="bingo-header">
         <h1 id="card-title">Bingo Card</h1>
         <button id="help-btn" aria-label="Help">?</button>
@@ -119,6 +124,7 @@
 
 
         async function init() {
+            try {
             const params = new URLSearchParams(window.location.search);
             const roomIdParam = params.get('room');
             const configParam = params.get('c');
@@ -155,6 +161,9 @@
                 renderCard(myCardData);
                 setupMultiplayer();
             }
+            } finally {
+                document.getElementById('loading-overlay').classList.remove('visible');
+            }
         }
 
         async function setupMultiplayer() {
@@ -170,6 +179,16 @@
             } else {
                 joinRoom();
             }
+        }
+
+
+        function showToast(message) {
+            const toast = document.getElementById("toast");
+            toast.textContent = message;
+            toast.classList.add("visible");
+            setTimeout(() => {
+                toast.classList.remove("visible");
+            }, 3000);
         }
 
         async function joinRoom() {
@@ -335,9 +354,12 @@
                 }
                 let pressTimer;
                 let isLongPress = false;
+                let startX, startY;
 
-                const startPress = () => {
+                const startPress = (e) => {
                     isLongPress = false;
+                    startX = e.clientX;
+                    startY = e.clientY;
                     if (data.enableNotes && !space.isFreeSpace) {
                         pressTimer = setTimeout(() => {
                             isLongPress = true;
@@ -346,7 +368,13 @@
                     }
                 };
 
-                const cancelPress = () => {
+                const cancelPress = (e) => {
+                    // Only cancel if moved more than 10px
+                    if (e.type === "pointermove") {
+                        if (!startX || !startY) return;
+                        const dist = Math.hypot(e.clientX - startX, e.clientY - startY);
+                        if (dist < 10) return;
+                    }
                     clearTimeout(pressTimer);
                 };
 
@@ -357,7 +385,10 @@
 
                 cell.addEventListener("click", () => {
                     if (isLongPress) return;
-                    if (isReadOnly) return;
+                    if (isReadOnly) {
+                        showToast("You cannot mark other players boards!");
+                        return;
+                    }
                     const wasMarked = space.marked;
                     space.marked = !wasMarked;
                     cell.classList.toggle("marked");
@@ -375,6 +406,7 @@
                         sync.updateCard(myCardData.roomId, userInfo.id, myCardData);
                     }
                 });
+                cell.addEventListener("contextmenu", (e) => e.preventDefault());
                 gridElement.appendChild(cell);
             });
             updateNavigation();

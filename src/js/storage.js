@@ -32,3 +32,18 @@ export const storage = {
         return newUser;
     }
 };
+
+const FORM_KEY = 'bingo_form_data';
+
+export const formStorage = {
+    save(data) {
+        localStorage.setItem(FORM_KEY, JSON.stringify(data));
+    },
+    load() {
+        const data = localStorage.getItem(FORM_KEY);
+        return data ? JSON.parse(data) : null;
+    },
+    clear() {
+        localStorage.removeItem(FORM_KEY);
+    }
+};
