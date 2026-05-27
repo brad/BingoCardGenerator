@@ -314,6 +314,8 @@
         function renderCard(data, isReadOnly = false) {
             titleElement.textContent = data.title;
             document.body.className = `standalone-body font-${data.fontSize || 'm'}`;
+            document.body.dataset.theme = data.theme || 'classic';
+            document.body.dataset.font = data.fontFamily || 'sans';
             gridElement.style.gridTemplateColumns = `repeat(${data.width}, 1fr)`;
             gridElement.style.gridTemplateRows = `repeat(${data.height}, 1fr)`;
             gridElement.innerHTML = '';

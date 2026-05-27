@@ -8,6 +8,8 @@ export const bingoCore = {
         centerValue: "Free",
         centerSubheadingValue: "Free Space",
         fontSize: 'm',
+        theme: 'classic',
+        fontFamily: 'sans',
         enableNotes: false,
     },
 
@@ -59,6 +61,8 @@ export const bingoCore = {
             centerValue,
             centerSubheadingValue,
             fontSize,
+            theme,
+            fontFamily,
             enableNotes,
         } = merged;
 
@@ -104,6 +108,8 @@ export const bingoCore = {
             width,
             height,
             fontSize,
+            theme,
+            fontFamily,
             enableNotes: !!enableNotes,
             spaces,
             roomId: this.sanitizeRoomId(roomId),
@@ -119,6 +125,8 @@ export const bingoCore = {
             cv: config.centerValue,
             cs: config.centerSubheadingValue,
             fz: config.fontSize,
+            th: config.theme,
+            ff: config.fontFamily,
             en: !!config.enableNotes,
         };
         const str = JSON.stringify(compact);
@@ -142,6 +150,8 @@ export const bingoCore = {
                     centerValue: compact.cv || this.DEFAULT_CONFIG.centerValue,
                     centerSubheadingValue: compact.cs || this.DEFAULT_CONFIG.centerSubheadingValue,
                     fontSize: compact.fz || this.DEFAULT_CONFIG.fontSize,
+                    theme: compact.th || this.DEFAULT_CONFIG.theme,
+                    fontFamily: compact.ff || this.DEFAULT_CONFIG.fontFamily,
                     enableNotes: compact.en !== undefined ? !!compact.en : this.DEFAULT_CONFIG.enableNotes,
                     raw: encoded,
                 };

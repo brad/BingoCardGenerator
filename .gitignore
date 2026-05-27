@@ -4,3 +4,4 @@ test-results/
 verification-screenshot.png
 serve.log
 verification/
+npm_output.log

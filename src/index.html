@@ -26,6 +26,24 @@
             <label class="checkbox-label">
                 <input type="checkbox" name="enableNotes" id="enableNotes"> Enable taking notes for each square
             </label>
+
+            <label>Theme
+                <select name="theme" id="theme">
+                    <option value="classic" selected>Classic</option>
+                    <option value="dark">Dark</option>
+                    <option value="retro">Retro</option>
+                    <option value="playful">Playful</option>
+                </select>
+            </label>
+            <label>Font Family
+                <select name="fontFamily" id="fontFamily">
+                    <option value="sans" selected>Modern</option>
+                    <option value="playful">Playful</option>
+                    <option value="script">Script</option>
+                    <option value="handwriting">Handwriting</option>
+                    <option value="display">Blocky</option>
+</select>
+            </label>
         </fieldset>
 
         <fieldset>
@@ -58,6 +76,16 @@
             <button type="button" id="generate-local">Open standalone card</button>
             <button type="button" id="generate-link">Copy shareable link</button>
         </div>
+
+    <div id="preview-section" style="margin-top: 20px; text-align: center;">
+        <h3>Live Preview</h3>
+        <div id="preview-card-container" style="display: flex; justify-content: center; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px;">
+            <div id="preview-cell" class="bingo-cell" style="width: 100px; height: 100px; font-family: var(--font-main);">
+                Preview
+                <div class="freespace-label">Subtitle</div>
+            </div>
+        </div>
+    </div>
     </form>
 
     <div id="link-display" style="display:none; margin-top: 10px; padding: 10px; background: #eef; border-radius: 4px; word-break: break-all;">
@@ -73,6 +101,27 @@
         const form = document.getElementById('generator-form');
         const centerType = document.getElementById('centerType');
         const centerManualOptions = document.getElementById('center-manual-options');
+
+        const themeSelect = document.getElementById('theme');
+        const fontSelect = document.getElementById('fontFamily');
+
+        themeSelect.addEventListener('change', () => {
+            document.body.dataset.theme = themeSelect.value;
+        });
+
+        fontSelect.addEventListener('change', () => {
+            document.body.dataset.font = fontSelect.value;
+        });
+
+        const fontSizeSelect = document.getElementById('fontSize');
+        fontSizeSelect.addEventListener('change', () => {
+            const previewCell = document.getElementById('preview-cell');
+            previewCell.className = 'bingo-cell font-' + fontSizeSelect.value;
+        });
+        // Initial state
+        document.getElementById('preview-cell').className = 'bingo-cell font-' + fontSizeSelect.value;
+
+
 
         centerType.addEventListener('change', () => {
             if (centerType.value === 'r') {
@@ -94,6 +143,8 @@
                 centerValue: formData.get('centerValue'),
                 centerSubheadingValue: formData.get('centerSubheadingValue'),
                 fontSize: formData.get('fontSize'),
+                theme: formData.get('theme'),
+                fontFamily: formData.get('fontFamily'),
                 enableNotes: formData.get('enableNotes') === 'on'
             };
         }
