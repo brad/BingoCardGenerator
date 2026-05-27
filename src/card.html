@@ -412,22 +412,27 @@
             updateNavigation();
         }
 
-        async function switchPlayer(newIndex) {
-            const direction = newIndex > currentIndex ? 'slide-left' : 'slide-right';
-            gridElement.classList.add(direction);
+                async function switchPlayer(newIndex) {
+            const isNext = newIndex > currentIndex;
+            const slideOutClass = isNext ? 'slide-left' : 'slide-right';
+            const slideInClass = isNext ? 'slide-right' : 'slide-left';
+
+            gridElement.style.transition = 'all 0.3s ease';
+            gridElement.classList.add(slideOutClass);
 
             setTimeout(() => {
                 currentIndex = newIndex;
                 const data = currentIndex === -1 ? myCardData : otherPlayers[currentIndex].cardData;
                 renderCard(data, currentIndex !== -1);
 
-                gridElement.classList.remove('slide-left', 'slide-right');
-                const opposite = direction === 'slide-left' ? 'slide-right' : 'slide-left';
-                gridElement.classList.add(opposite);
+                gridElement.style.transition = 'none';
+                gridElement.classList.remove(slideOutClass);
+                gridElement.classList.add(slideInClass);
 
                 gridElement.offsetHeight;
 
-                gridElement.classList.remove(opposite);
+                gridElement.style.transition = 'all 0.3s ease';
+                gridElement.classList.remove(slideInClass);
             }, 300);
         }
 
