@@ -1,3 +1,4 @@
+* { box-sizing: border-box; }
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Jua&family=Lobster&family=Patrick+Hand&family=Bungee&display=swap');
 
 :root {
@@ -221,25 +222,26 @@ button:active, input[type="submit"]:active {
 
 .bingo-grid {
     display: grid;
-    gap: 8px;
+    gap: 4px;
     width: 100%;
     max-width: min(98vw, 80vh);
     aspect-ratio: 1 / 1;
     transition: var(--transition-normal);
-    padding: 8px;
+    padding: 4px;
     background: var(--border-color);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-lg);
 }
 
 .bingo-cell {
+
     border: none;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 8px;
+    padding: 4px;
     cursor: pointer;
     background: var(--bg-color);
     user-select: none;
@@ -256,6 +258,8 @@ button:active, input[type="submit"]:active {
     z-index: 2;
     box-shadow: var(--shadow-md);
 }
+
+
 
 .bingo-cell.marked {
     background-color: var(--marked-color);
@@ -296,152 +300,26 @@ button:active, input[type="submit"]:active {
 }
 
 /* Font Sizes */
-.font-s .bingo-cell {
-    border: none;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 8px;
-    cursor: pointer;
-    background: var(--bg-color);
-    user-select: none;
-    overflow: hidden;
-    word-break: break-word;
-    position: relative;
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-sm);
-    transition: var(--transition-bounce);
-}
+.font-s .bingo-cell { font-size: 0.8rem; }
 
-.bingo-cell:hover {
-    transform: scale(1.02);
-    z-index: 2;
-    box-shadow: var(--shadow-md);
-}
-.font-m .bingo-cell {
-    border: none;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 8px;
-    cursor: pointer;
-    background: var(--bg-color);
-    user-select: none;
-    overflow: hidden;
-    word-break: break-word;
-    position: relative;
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-sm);
-    transition: var(--transition-bounce);
-}
 
-.bingo-cell:hover {
-    transform: scale(1.02);
-    z-index: 2;
-    box-shadow: var(--shadow-md);
-}
-.font-l .bingo-cell {
-    border: none;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 8px;
-    cursor: pointer;
-    background: var(--bg-color);
-    user-select: none;
-    overflow: hidden;
-    word-break: break-word;
-    position: relative;
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-sm);
-    transition: var(--transition-bounce);
-}
+.font-m .bingo-cell { font-size: 1rem; }
 
-.bingo-cell:hover {
-    transform: scale(1.02);
-    z-index: 2;
-    box-shadow: var(--shadow-md);
-}
+
+.font-l .bingo-cell { font-size: 1.2rem; }
+
+
 
 @media (min-width: 600px) {
-    .font-s .bingo-cell {
-    border: none;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 8px;
-    cursor: pointer;
-    background: var(--bg-color);
-    user-select: none;
-    overflow: hidden;
-    word-break: break-word;
-    position: relative;
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-sm);
-    transition: var(--transition-bounce);
-}
+    .font-s .bingo-cell { font-size: 0.8rem; }
 
-.bingo-cell:hover {
-    transform: scale(1.02);
-    z-index: 2;
-    box-shadow: var(--shadow-md);
-}
-    .font-m .bingo-cell {
-    border: none;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 8px;
-    cursor: pointer;
-    background: var(--bg-color);
-    user-select: none;
-    overflow: hidden;
-    word-break: break-word;
-    position: relative;
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-sm);
-    transition: var(--transition-bounce);
-}
 
-.bingo-cell:hover {
-    transform: scale(1.02);
-    z-index: 2;
-    box-shadow: var(--shadow-md);
-}
-    .font-l .bingo-cell {
-    border: none;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 8px;
-    cursor: pointer;
-    background: var(--bg-color);
-    user-select: none;
-    overflow: hidden;
-    word-break: break-word;
-    position: relative;
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-sm);
-    transition: var(--transition-bounce);
-}
+    .font-m .bingo-cell { font-size: 1rem; }
 
-.bingo-cell:hover {
-    transform: scale(1.02);
-    z-index: 2;
-    box-shadow: var(--shadow-md);
-}
+
+    .font-l .bingo-cell { font-size: 1.2rem; }
+
+
 }
 
 .checkbox-label {
@@ -544,6 +422,8 @@ dialog::backdrop {
     font-weight: bold;
     font-size: 20px;
     flex: none;
+    padding: 0;
+    flex-shrink: 0;
 }
 
 .nav-button:disabled {
@@ -629,6 +509,8 @@ dialog::backdrop {
     justify-content: center;
     color: white;
     font-size: 18px;
+    padding: 0;
+    flex-shrink: 0;
 }
 
 #add-photo-btn {
