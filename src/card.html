@@ -133,17 +133,21 @@
         let currentSpaceIndex = -1;
 
         function showToast(message) {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = 'toast';
+            const container = document.getElementById("toast-container");
+            const toast = document.createElement("div");
+            toast.className = "toast";
             toast.textContent = message;
             container.appendChild(toast);
+
+            // Force reflow to trigger entrance animation
+            toast.offsetHeight;
+            toast.classList.add("visible");
+
             setTimeout(() => {
-                toast.classList.add('fade-out');
+                toast.classList.remove("visible");
                 setTimeout(() => toast.remove(), 300);
             }, 3000);
         }
-
         async function init() {
             try {
                 const params = new URLSearchParams(window.location.search);
@@ -200,6 +204,7 @@
                     console.error("Firebase might not be configured or room empty:", e);
                     nicknameInput.value = "Player 1";
                 }
+                nicknameSubmit.textContent = "Join Room";
                 nicknameModal.showModal();
             } else {
                 joinRoom();
@@ -219,7 +224,8 @@
                 console.error("Join room failed:", err);
                 if (err.message === 'Nickname already taken') {
                     nicknameError.textContent = 'Nickname already taken.';
-                    nicknameModal.showModal();
+                    nicknameSubmit.textContent = "Join Room";
+                nicknameModal.showModal();
                     return;
                 }
             }
@@ -289,11 +295,11 @@
             namePressTimer = setTimeout(() => {
                 isNameLongPress = true;
                 nicknameInput.value = userInfo.nickname;
-                nicknameError.textContent = '';
+                nicknameError.textContent = "";
+                nicknameSubmit.textContent = "Update";
                 nicknameModal.showModal();
             }, 500);
         });
-
         const cancelNamePress = (e) => {
             if (e.type === "pointermove") {
                 if (!nameStartX || !nameStartY) return;
