@@ -8,7 +8,8 @@ import {
     serverTimestamp,
     runTransaction,
     getCountFromServer,
-    deleteField
+    deleteField,
+    deleteDoc
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { db } from './firebase-config.js';
 
@@ -54,7 +55,7 @@ export const sync = {
         return null;
     },
 
-    async joinRoom(roomId, userInfo, cardData) {
+    async joinRoom(roomId, userInfo, cardData, oldNickname = null) {
         const roomRef = doc(db, 'rooms', roomId);
         const playerRef = doc(db, 'rooms', roomId, 'players', userInfo.id);
         const nickRef = doc(db, 'rooms', roomId, 'nicknames', userInfo.nickname.toLowerCase());
@@ -64,6 +65,11 @@ export const sync = {
                 const nickDoc = await transaction.get(nickRef);
                 if (nickDoc.exists() && nickDoc.data().userId !== userInfo.id) {
                     throw new Error('Nickname already taken');
+                }
+
+                if (oldNickname && oldNickname.toLowerCase() !== userInfo.nickname.toLowerCase()) {
+                    const oldNickRef = doc(db, 'rooms', roomId, 'nicknames', oldNickname.toLowerCase());
+                    transaction.delete(oldNickRef);
                 }
 
                 transaction.set(nickRef, { userId: userInfo.id });
