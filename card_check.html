@@ -124,7 +124,7 @@
         let myCardData = null;
         let otherPlayers = [];
         let currentIndex = -1; // -1 means "Me"
-        let userInfo = bingoStorage.getUserInfo();
+        let userInfo = { id: "", nicknames: {}, isNew: true };
         let isStandalone = false;
         let activeNickname = "";
 
@@ -273,7 +273,6 @@
 
                     document.querySelector('.multiplayer-footer').style.display = 'none';
                     renderCard(myCardData);
-                    setupMultiplayer();
                     bingoStorage.saveLastSession({ type: "standalone", configRaw: config.raw });
                     const url = new URL(window.location.href);
                     if (url.searchParams.get("u") !== userInfo.id) {
@@ -499,110 +498,3 @@
                     const sub = document.createElement('div');
                     sub.className = 'freespace-label';
                     sub.textContent = space.subheading;
-                    cell.appendChild(sub);
-                }
-                let pressTimer;
-                let isLongPress = false;
-                let startX, startY;
-
-                const startPress = (e) => {
-                    isLongPress = false;
-                    startX = e.clientX;
-                    startY = e.clientY;
-                    if (data.enableNotes && !space.isFreeSpace) {
-                        pressTimer = setTimeout(() => {
-                            isLongPress = true;
-                            openNoteModal(index, isReadOnly, data);
-                        }, 500);
-                    }
-                };
-
-                const cancelPress = (e) => {
-                    if (e.type === "pointermove") {
-                        if (!startX || !startY) return;
-                        const dist = Math.hypot(e.clientX - startX, e.clientY - startY);
-                        if (dist < 10) return;
-                    }
-                    clearTimeout(pressTimer);
-                };
-
-                cell.addEventListener("pointerdown", startPress);
-                cell.addEventListener("pointerup", cancelPress);
-                cell.addEventListener("pointermove", cancelPress);
-                cell.addEventListener("pointercancel", cancelPress);
-
-                cell.addEventListener("click", () => {
-                    if (isLongPress) return;
-                    if (isReadOnly) {
-                        showToast("You cannot mark other players boards!");
-                        return;
-                    }
-                    const wasMarked = space.marked;
-                    space.marked = !wasMarked;
-                    cell.classList.toggle("marked");
-
-                    if (!wasMarked) {
-                        if (data.enableNotes && !space.isFreeSpace) {
-                            space.wasEverDaubed = true;
-                            openNoteModal(index);
-                        }
-                        space.wasEverDaubed = true;
-                    }
-
-                    bingoStorage.saveCard(myCardData);
-                    if (!isStandalone) {
-                        sync.updateCard(myCardData.roomId, userInfo.id, myCardData);
-                    }
-                });
-                cell.addEventListener("contextmenu", (e) => e.preventDefault());
-                gridElement.appendChild(cell);
-            });
-            updateNavigation();
-        }
-
-        async function switchPlayer(newIndex) {
-            const isNext = newIndex > currentIndex;
-            const slideOutClass = isNext ? 'slide-left' : 'slide-right';
-            const slideInClass = isNext ? 'slide-right' : 'slide-left';
-
-            gridElement.style.transition = 'all 0.3s ease';
-            gridElement.classList.add(slideOutClass);
-
-            setTimeout(() => {
-                currentIndex = newIndex;
-                const data = currentIndex === -1 ? myCardData : otherPlayers[currentIndex].cardData;
-                renderCard(data, currentIndex !== -1);
-
-                gridElement.style.transition = 'none';
-                gridElement.classList.remove(slideOutClass);
-                gridElement.classList.add(slideInClass);
-
-                gridElement.offsetHeight;
-
-                gridElement.style.transition = 'all 0.3s ease';
-                gridElement.classList.remove(slideInClass);
-            }, 300);
-        }
-
-
-        prevBtn.addEventListener('click', () => {
-            if (currentIndex > -1) switchPlayer(currentIndex - 1);
-        });
-
-        nextBtn.addEventListener('click', () => {
-            if (currentIndex < otherPlayers.length - 1) switchPlayer(currentIndex + 1);
-        });
-        helpBtn.addEventListener("click", () => helpModal.showModal());
-        closeHelpBtn.addEventListener("click", () => helpModal.close());
-        init();
-
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js').catch(err => {
-                    console.log('SW registration failed: ', err);
-                });
-            });
-        }
-    </script>
-</body>
-</html>
