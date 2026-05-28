@@ -101,6 +101,15 @@ export const sync = {
         return null;
     },
 
+    async getPlayerData(roomId, userId) {
+        const playerRef = doc(db, "rooms", roomId, "players", userId);
+        const docSnap = await getDoc(playerRef);
+        if (docSnap.exists()) {
+            return docSnap.data();
+        }
+        return null;
+    },
+
     async updateCard(roomId, userId, cardData) {
         const playerRef = doc(db, 'rooms', roomId, 'players', userId);
         try {

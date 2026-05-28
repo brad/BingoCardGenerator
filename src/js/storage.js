@@ -1,5 +1,6 @@
 const STORAGE_KEY = 'bingo_card_state';
 const USER_KEY = 'bingo_user_info';
+const SESSION_KEY = 'bingo_last_session';
 
 export const storage = {
     saveCard(cardData) {
@@ -25,6 +26,7 @@ export const storage = {
     getUserInfo(roomId = null) {
         const data = localStorage.getItem(USER_KEY);
         let user;
+        let isNew = false;
         if (data) {
             user = JSON.parse(data);
         } else {
@@ -33,6 +35,7 @@ export const storage = {
                 id: crypto.randomUUID(),
                 nicknames: {}
             };
+            isNew = true;
         }
 
         if (!user.nicknames) user.nicknames = {};
@@ -45,7 +48,16 @@ export const storage = {
         }
 
         this.setUserInfo(user);
-        return user;
+        return { ...user, isNew };
+    },
+
+    saveLastSession(session) {
+        localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    },
+
+    getLastSession() {
+        const data = localStorage.getItem(SESSION_KEY);
+        return data ? JSON.parse(data) : null;
     }
 };
 
