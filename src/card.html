@@ -124,7 +124,7 @@
         let myCardData = null;
         let otherPlayers = [];
         let currentIndex = -1; // -1 means "Me"
-        let userInfo = bingoStorage.getUserInfo();
+        let userInfo = null;
         let isStandalone = false;
         let activeNickname = "";
 
@@ -176,11 +176,16 @@
 
                 userInfo = bingoStorage.getUserInfo(roomIdParam);
 
-                // Identity adoption: if we are "new" locally but have a u= parameter,
-                // adopt that ID. This helps PWA restoration on iOS where localStorage
-                // might be isolated or cleared.
-                if (userInfo.isNew && userIdParam) {
+                // Identity adoption: if we have a u= parameter, adopt that ID.
+                // This helps PWA restoration on iOS where localStorage might be isolated or cleared.
+                if (userIdParam && userInfo.id !== userIdParam) {
                     userInfo.id = userIdParam;
+                    // If we're adopting a new ID, we should clear the local nickname for this room
+                    // to ensure we fetch the correct one from Firestore or prompt the user.
+                    if (roomIdParam) {
+                        userInfo.nickname = '';
+                        if (userInfo.nicknames) delete userInfo.nicknames[roomIdParam];
+                    }
                     bingoStorage.setUserInfo(userInfo);
                 }
 
@@ -204,17 +209,18 @@
 
                 if (roomIdParam) {
                     const sanitizedRoomId = bingoCore.sanitizeRoomId(roomIdParam);
-                    userInfo = bingoStorage.getUserInfo(sanitizedRoomId);
+
 
                     // Try local storage first
                     myCardData = bingoStorage.loadCard(sanitizedRoomId);
 
-                    // If not found locally, try fetching from sync (restores card and nickname)
-                    if (!myCardData) {
+                    // If not found locally OR if we just adopted a new ID and don't have a nickname for this room,
+                    // try fetching from sync (restores card and nickname)
+                    if (!myCardData || (userIdParam && !userInfo.nickname)) {
                         try {
                             const playerData = await sync.getPlayerData(sanitizedRoomId, userInfo.id);
                             if (playerData) {
-                                myCardData = playerData.cardData;
+                                if (!myCardData) myCardData = playerData.cardData;
                                 if (playerData.nickname) {
                                     userInfo.nicknames[sanitizedRoomId] = playerData.nickname;
                                     userInfo.nickname = playerData.nickname;
@@ -286,7 +292,7 @@
                         myCardData = bingoCore.generateCardData(bingoCore.DEFAULT_CONFIG, 'default');
                         bingoStorage.saveCard(myCardData);
                     }
-                    userInfo = bingoStorage.getUserInfo(myCardData.roomId);
+
                     renderCard(myCardData);
                     setupMultiplayer();
                 }
