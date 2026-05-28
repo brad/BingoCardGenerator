@@ -19,17 +19,30 @@ export const storage = {
         localStorage.setItem(USER_KEY, JSON.stringify(userInfo));
     },
 
-    getUserInfo() {
+    getUserInfo(roomId = null) {
         const data = localStorage.getItem(USER_KEY);
-        if (data) return JSON.parse(data);
+        let user;
+        if (data) {
+            user = JSON.parse(data);
+        } else {
+            // Create a new user if none exists
+            user = {
+                id: crypto.randomUUID(),
+                nicknames: {}
+            };
+        }
 
-        // Create a new user if none exists
-        const newUser = {
-            id: crypto.randomUUID(),
-            nickname: ''
-        };
-        this.setUserInfo(newUser);
-        return newUser;
+        if (!user.nicknames) user.nicknames = {};
+
+        // If roomId is provided, we set user.nickname for the caller's convenience
+        if (roomId) {
+            user.nickname = user.nicknames[roomId] || '';
+        } else {
+            user.nickname = '';
+        }
+
+        this.setUserInfo(user);
+        return user;
     }
 };
 
