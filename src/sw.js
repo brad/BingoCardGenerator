@@ -63,12 +63,12 @@ self.addEventListener('fetch', (event) => {
           }
           return response;
         })
-        .catch(() => caches.match(event.request))
+        .catch(() => caches.match(event.request, { ignoreSearch: true }))
     );
   } else {
     // Default strategy for other requests
     event.respondWith(
-      caches.match(event.request).then((response) => response || fetch(event.request))
+      caches.match(event.request, { ignoreSearch: true }).then((response) => response || fetch(event.request))
     );
   }
 });

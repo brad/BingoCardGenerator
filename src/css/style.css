@@ -179,9 +179,9 @@ button:active, input[type="submit"]:active {
 }
 
 .bingo-header {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
-    justify-content: center;
     gap: 15px;
     padding: 10px;
     background: var(--primary-color);
@@ -192,18 +192,25 @@ button:active, input[type="submit"]:active {
     color: white !important;
     margin: 0;
     font-size: 1.5rem;
+    grid-column: 2;
+}
+
+.header-right {
+    grid-column: 3;
+    display: flex;
+    justify-content: flex-end;
 }
 
 #help-btn {
     color: white;
-    width: 28px;
-    height: 28px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     border: 2px solid white;
     background: transparent;
     padding: 0;
     font-weight: bold;
-    font-size: 18px;
+    font-size: 20px;
     cursor: pointer;
     display: flex;
     align-items: center;

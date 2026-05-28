@@ -2,7 +2,6 @@
   "name": "Bingo Card",
   "short_name": "Bingo",
   "description": "Standalone Bingo Card Generator",
-  "start_url": "card.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#4a90e2",
