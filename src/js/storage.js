@@ -3,16 +3,19 @@ const USER_KEY = 'bingo_user_info';
 
 export const storage = {
     saveCard(cardData) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(cardData));
+        const key = cardData.roomId ? `${STORAGE_KEY}_${cardData.roomId}` : STORAGE_KEY;
+        localStorage.setItem(key, JSON.stringify(cardData));
     },
 
-    loadCard() {
-        const data = localStorage.getItem(STORAGE_KEY);
+    loadCard(roomId = null) {
+        const key = roomId ? `${STORAGE_KEY}_${roomId}` : STORAGE_KEY;
+        const data = localStorage.getItem(key);
         return data ? JSON.parse(data) : null;
     },
 
-    clearCard() {
-        localStorage.removeItem(STORAGE_KEY);
+    clearCard(roomId = null) {
+        const key = roomId ? `${STORAGE_KEY}_${roomId}` : STORAGE_KEY;
+        localStorage.removeItem(key);
     },
 
     setUserInfo(userInfo) {

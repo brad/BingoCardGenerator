@@ -146,53 +146,6 @@
                 setTimeout(() => toast.remove(), 300);
             }, 3000);
         }
-        async function init() {
-            try {
-                const params = new URLSearchParams(window.location.search);
-                const roomIdParam = params.get('room');
-                const configParam = params.get('c');
-
-                if (roomIdParam) {
-                    const sanitizedRoomId = bingoCore.sanitizeRoomId(roomIdParam);
-                    userInfo = bingoStorage.getUserInfo(sanitizedRoomId);
-
-                    try {
-                        const config = await sync.getRoomConfig(sanitizedRoomId);
-                        if (config) {
-                            myCardData = bingoCore.generateCardData(config, sanitizedRoomId);
-                            bingoStorage.saveCard(myCardData);
-                            renderCard(myCardData);
-                            setupMultiplayer();
-                        } else {
-                            alert("This room does not exist or has expired.");
-                            window.location.href = 'index.html';
-                        }
-                    } catch (e) {
-                        console.error("Error fetching room config:", e);
-                        alert("Failed to join room. Returning to home.");
-                        window.location.href = 'index.html';
-                    }
-                } else if (configParam) {
-                    isStandalone = true;
-                    const config = bingoCore.decodeConfig(window.location.search);
-                    myCardData = bingoCore.generateCardData(config, 'standalone');
-                    document.querySelector('.multiplayer-footer').style.display = 'none';
-                    renderCard(myCardData);
-                } else {
-                    myCardData = bingoStorage.loadCard();
-                    if (!myCardData) {
-                        myCardData = bingoCore.generateCardData(bingoCore.DEFAULT_CONFIG, 'default');
-                        bingoStorage.saveCard(myCardData);
-                    }
-                    userInfo = bingoStorage.getUserInfo(myCardData.roomId);
-                    renderCard(myCardData);
-                    setupMultiplayer();
-                }
-            } finally {
-                document.getElementById('loading-overlay').classList.remove('visible');
-            }
-        }
-
         async function setupMultiplayer() {
             if (!userInfo.nickname) {
                 try {
@@ -214,6 +167,81 @@
             });
         }
 
+        async function init() {
+            try {
+                const params = new URLSearchParams(window.location.search);
+                const roomIdParam = params.get('room');
+                const configParam = params.get('c');
+
+                if (roomIdParam) {
+                    const sanitizedRoomId = bingoCore.sanitizeRoomId(roomIdParam);
+                    userInfo = bingoStorage.getUserInfo(sanitizedRoomId);
+
+                    // Try local storage first
+                    myCardData = bingoStorage.loadCard(sanitizedRoomId);
+
+                    // If not found locally, try fetching from sync
+                    if (!myCardData) {
+                        try {
+                            myCardData = await sync.getPlayerCard(sanitizedRoomId, userInfo.id);
+                        } catch (e) {
+                            console.error("Error fetching player card:", e);
+                        }
+                    }
+
+                    // If still no card data, generate a new one from room config
+                    if (!myCardData) {
+                        try {
+                            const config = await sync.getRoomConfig(sanitizedRoomId);
+                            if (config) {
+                                myCardData = bingoCore.generateCardData(config, sanitizedRoomId);
+                            } else {
+                                alert("This room does not exist or has expired.");
+                                window.location.href = 'index.html';
+                                return;
+                            }
+                        } catch (e) {
+                            console.error("Error fetching room config:", e);
+                            alert("Failed to join room. Returning to home.");
+                            window.location.href = 'index.html';
+                            return;
+                        }
+                    }
+
+                    bingoStorage.saveCard(myCardData);
+                    renderCard(myCardData);
+                    setupMultiplayer();
+                } else if (configParam) {
+                    isStandalone = true;
+                    const config = bingoCore.decodeConfig(window.location.search);
+
+                    // For standalone, we check if we have a saved card for 'standalone'
+                    // AND if it matches the current config string to avoid stale cards
+                    const savedCard = bingoStorage.loadCard('standalone');
+                    if (savedCard && savedCard.configRaw === config.raw) {
+                        myCardData = savedCard;
+                    } else {
+                        myCardData = bingoCore.generateCardData(config, 'standalone');
+                        myCardData.configRaw = config.raw;
+                        bingoStorage.saveCard(myCardData);
+                    }
+
+                    document.querySelector('.multiplayer-footer').style.display = 'none';
+                    renderCard(myCardData);
+                } else {
+                    myCardData = bingoStorage.loadCard('default');
+                    if (!myCardData) {
+                        myCardData = bingoCore.generateCardData(bingoCore.DEFAULT_CONFIG, 'default');
+                        bingoStorage.saveCard(myCardData);
+                    }
+                    userInfo = bingoStorage.getUserInfo(myCardData.roomId);
+                    renderCard(myCardData);
+                    setupMultiplayer();
+                }
+            } finally {
+                document.getElementById('loading-overlay').classList.remove('visible');
+            }
+        }
         async function joinRoom() {
             try {
                 await sync.joinRoom(myCardData.roomId, userInfo, myCardData, activeNickname);
@@ -364,18 +392,18 @@
             notePhotoInput.value = "";
         });
 
+
         saveNoteBtn.addEventListener('click', () => {
             if (currentSpaceIndex !== -1) {
                 myCardData.spaces[currentSpaceIndex].note = noteTextarea.value;
                 myCardData.spaces[currentSpaceIndex].photo = currentPhotoBase64;
+                bingoStorage.saveCard(myCardData);
                 if (!isStandalone) {
-                    bingoStorage.saveCard(myCardData);
                     sync.updateCard(myCardData.roomId, userInfo.id, myCardData);
                 }
                 noteModal.close();
             }
         });
-
         closeModalBtn.addEventListener('click', () => {
             noteModal.close();
         });
@@ -390,6 +418,7 @@
         photoFullscreenModal.addEventListener("click", () => {
             photoFullscreenModal.close();
         });
+
 
         function renderCard(data, isReadOnly = false) {
             titleElement.textContent = data.title;
@@ -461,8 +490,8 @@
                         space.wasEverDaubed = true;
                     }
 
+                    bingoStorage.saveCard(myCardData);
                     if (!isStandalone) {
-                        bingoStorage.saveCard(myCardData);
                         sync.updateCard(myCardData.roomId, userInfo.id, myCardData);
                     }
                 });
@@ -496,6 +525,7 @@
             }, 300);
         }
 
+
         prevBtn.addEventListener('click', () => {
             if (currentIndex > -1) switchPlayer(currentIndex - 1);
         });
@@ -503,8 +533,6 @@
         nextBtn.addEventListener('click', () => {
             if (currentIndex < otherPlayers.length - 1) switchPlayer(currentIndex + 1);
         });
-
-
         helpBtn.addEventListener("click", () => helpModal.showModal());
         closeHelpBtn.addEventListener("click", () => helpModal.close());
         init();
