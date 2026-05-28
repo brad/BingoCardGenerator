@@ -235,6 +235,7 @@ button:active, input[type="submit"]:active {
 
 .bingo-cell {
 
+    line-height: 1.1;
     border: none;
     display: flex;
     flex-direction: column;
@@ -617,4 +618,8 @@ dialog::backdrop {
 .toast.visible {
     opacity: 1;
     transform: translateY(0);
+}
+
+#nickname-submit {
+    margin-top: 15px;
 }

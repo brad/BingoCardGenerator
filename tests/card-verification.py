@@ -16,7 +16,7 @@ def run_cuj(page):
     if nickname_input.is_visible():
         print("Nickname modal visible. Entering nickname...")
         nickname_input.fill("Tester")
-        page.get_by_role("button", name="Join Game").click()
+        page.get_by_role("button", name="Join Room").click()
         page.wait_for_timeout(2000)
 
     # Verify card is rendered
@@ -36,7 +36,7 @@ def run_cuj(page):
     note_modal = page.locator("#note-modal")
     if note_modal.is_visible():
         print("SUCCESS: Note modal opened via long press.")
-        page.get_by_role("button", name="Cancel").click()
+        page.get_by_role("button", name="Close").click()
         page.wait_for_timeout(1000)
     else:
         print("FAILURE: Note modal did NOT open via long press.")
